@@ -1,0 +1,8 @@
+*.DS_Store
+*.pdb
+*.pri
+*.bat
+.vs
+node_modules
+obj
+bin

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin
+    xmlns="http://apache.org/cordova/ns/plugins/1.0" 
+    id="cordova-plugin-iotize-ble"
+    version="1.0.3">
+
+    <name>iotize-ble</name>
+    <description>Bluetooth Low Energy (BLE) IoTize Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
+
+    <js-module src="www/iotize-ble.js" name="iotizeBLE">
+        <clobbers target="iotizeBLE" />
+    </js-module>
+
+
+  <platform name="windows">
+    <js-module src="src/windows/iotize-ble-proxy.js" name="iotizeBLEProxy">
+      <merges target="" />
+    </js-module>
+    <framework src="src/windows/ioTizeBLE.winmd" custom="true"/>
+    <config-file target="package.appxmanifest" parent="/Package/Capabilities">
+      <DeviceCapability Name="bluetooth"/>
+    </config-file>
+  </platform>
+  
+  <platform name="ios">
+  <config-file target="config.xml" parent="/*">
+    <feature name="iotizeBLEProxy">
+      <param name="ios-package" value="iotizeBLEProxy" />
+    </feature>
+  </config-file>
+  <source-file src="src/ios/BLEProxy.swift" />
+  <source-file src="src/ios/BLEManager.swift" />
+  <source-file src="src/ios/BLEPeripheral.swift" />
+  </platform>
+
+</plugin>

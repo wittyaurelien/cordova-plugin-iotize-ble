@@ -1,0 +1,35 @@
+{
+  "name": "cordova-plugin-iotize-ble",
+  "version": "1.0.1",
+  "description": "Bluetooth Low Energy (BLE) for IoTize modules Plugin",
+  "cordova": {
+    "id": "cordova-plugin-iotize-ble",
+    "platforms": [
+      "ios",
+      "android",
+      "windows"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/iotize-solutions"
+  },
+  "keywords": [
+    "cordova",
+    "bluetooth",
+    "ble",
+    "bluetoothle",
+    "bluetooth le",
+    "low energy",
+    "iotize",
+    "cordova-windows",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "author": "IoTize SAS <support@iotize.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/iotize-solutions/iotize-device-shell/issues"
+  },
+  "homepage": "#readme"
+}
