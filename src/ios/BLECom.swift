@@ -33,7 +33,7 @@ struct IoTizeBleError: Error {
 
 }
 
-@objc(iotizeBLEProxy) class iotizeBLEProxy : CDVPlugin {
+@objc(BLECom) class BLECom : CDVPlugin {
 
   var bleController: BLEManager!
   var lastError: IoTizeBleError?
@@ -68,8 +68,8 @@ struct IoTizeBleError: Error {
     self.commandDelegate!.send( pluginResult, callbackId: command.callbackId)
   }
 
-  @objc(isAvailable:)
-  func isAvailable(command: CDVInvokedUrlCommand) {
+  @objc(checkAvailable:)
+  func checkAvailable(command: CDVInvokedUrlCommand) {
     
     DispatchQueue.main.async {
      
@@ -152,33 +152,40 @@ struct IoTizeBleError: Error {
         }
     })
   }
+  
+  //Disconnect to a device using its name
+  @objc(disConnect:)
+  func disConnect(command: CDVInvokedUrlCommand) {
+    
+    //we need the name of the device
+    if (command.arguments.count == 0){
+        self.sendError(command: command, result: "disConnection parameter error")
+        return
+    }
+
+    let nameDevice = command.arguments[0] as? String ?? ""
+    
+    bleController.disConnect(device: nameDevice, completion: {
+        (error: IoTizeBleError?) -> () in
+        
+        DispatchQueue.main.async {
+            
+            if (error != nil){
+              self.lastError = error
+              self.sendError(command: command, result: error!.message)
+            }
+            else {
+              print("##> Sending Disconnected Ok")
+              self.sendSuccess(command: command, result: "Ok")
+            }
+        }
+    })
+  }
 
   @objc(getLastError:)
    func getLastError(command: CDVInvokedUrlCommand) {
      let msg: String = (lastError != nil) ? (lastError!.message) : ""
      self.sendSuccess(command: command, result: msg)
-    }
-
-  @objc(isConnected:)
-   func isConnected(command: CDVInvokedUrlCommand) {
-     DispatchQueue.main.async {
-     
-      //check State
-      self.bleController.checkConnection(completion: {
-        (error: IoTizeBleError?) -> () in
-        
-         DispatchQueue.main.async {
-            
-          if (error != nil){
-            self.lastError = error
-            self.sendError(command: command, result: error!.message)
-          }
-          else {
-            self.sendSuccess(command: command, result: "Ok")
-          }
-        } 
-      })
-    } 
     }
 
   //Send Data to device

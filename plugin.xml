@@ -5,7 +5,7 @@
     version="1.0.3">
 
     <name>iotize-ble</name>
-    <description>Bluetooth Low Energy (BLE) IoTize Plugin</description>
+    <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
     <license>Apache 2.0</license>
     <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
 
@@ -13,9 +13,18 @@
         <clobbers target="iotizeBLE" />
     </js-module>
 
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="BLECom">
+        <param name="android-package" value="com.iotize.plugin.BLECom"/>
+      </feature>
+    </config-file>
+
+    <source-file src="src/android/BLECom.java" target-dir="src/com/iotize/plugin"/>
+  </platform>
 
   <platform name="windows">
-    <js-module src="src/windows/iotize-ble-proxy.js" name="iotizeBLEProxy">
+    <js-module src="src/windows/iotize-ble-com.js" name="BLECom">
       <merges target="" />
     </js-module>
     <framework src="src/windows/ioTizeBLE.winmd" custom="true"/>
@@ -26,11 +35,11 @@
   
   <platform name="ios">
   <config-file target="config.xml" parent="/*">
-    <feature name="iotizeBLEProxy">
-      <param name="ios-package" value="iotizeBLEProxy" />
+    <feature name="BLECom">
+      <param name="ios-package" value="BLECom" />
     </feature>
   </config-file>
-  <source-file src="src/ios/BLEProxy.swift" />
+  <source-file src="src/ios/BLECom.swift" />
   <source-file src="src/ios/BLEManager.swift" />
   <source-file src="src/ios/BLEPeripheral.swift" />
   </platform>

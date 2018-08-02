@@ -26,7 +26,7 @@
         }
     }
 
-    cordova.commandProxy.add("iotizeBLEProxy", {
+    cordova.commandProxy.add("BLECom", {
 
 
         getLastError: function (successCallback, errorCallback) {
