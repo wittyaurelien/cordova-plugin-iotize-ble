@@ -831,7 +831,7 @@ namespace IoTizeBLE
         private async Task send_All_TX_Packets(byte[] data)
         {
             byte chksum = 0;
-
+            bool success = false;
             if (data.Length > 0)
             {
 
@@ -862,17 +862,24 @@ namespace IoTizeBLE
                 }
 
                 // launch the first packet
-                await send_one_TX_Packet(m_currentTxPacket);
+                success = await send_one_TX_Packet(m_currentTxPacket);
 
             } // if (TX_Buffer_length > 0)
+
+            //and the rest of it
+            while (success && (m_currentTxPacket > 0))
+            {
+                m_currentTxPacket--;
+                success = await send_one_TX_Packet(m_currentTxPacket);
+            }
         }
 
         // Send one packet of BLE frame
-        private async Task send_one_TX_Packet(int num)
+        private async Task<bool> send_one_TX_Packet(int num)
         {
             int len = 0;
             int offset = 0;
-
+            
             if (SPPOverLECharacteristic == null)
             {
                 setUpSPP();
@@ -912,9 +919,11 @@ namespace IoTizeBLE
 
             if (SPPOverLECharacteristic != null)
             {
-                await SPPOverLECharacteristic.WriteValueAsync(packetBuffer, GattWriteOption.WriteWithoutResponse);
+                GattCommunicationStatus status =  await SPPOverLECharacteristic.WriteValueAsync(packetBuffer, GattWriteOption.WriteWithoutResponse);
+                return (status == GattCommunicationStatus.Success);
             }
 
+            return false;
         }
 
        
