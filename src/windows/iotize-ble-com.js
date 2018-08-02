@@ -108,7 +108,7 @@
             }
             var success = false;
             try {
-                success = await iotizeProxy.connect(device);
+                success = await iotizeProxy.disConnect(device);
             } catch (e) {
                 errorCallback(e);
             }
@@ -122,7 +122,7 @@
 
         },
 
-        sendRequest: async function (successCallback, errorCallback, device, request) {
+        sendRequest: async function (successCallback, errorCallback, request) {
 
             if (!checkProxy()){
                 errorCallback("Internal Error!");
@@ -130,7 +130,7 @@
             }
             
             try {
-                var response = await iotizeProxy.sendRequest(device, request);
+                var response = await iotizeProxy.sendRequest(request[0], request[1]);
                 successCallback(response);
             } catch (e) {                
                 errorCallback(iotizeProxy.getLastError());            

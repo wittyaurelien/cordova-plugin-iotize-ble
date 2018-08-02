@@ -501,7 +501,7 @@ namespace IoTizeBLE
             }
             catch (Exception ex)
             {
-                Log.WriteLine("AdvertisementWatcher_Received: " + ex.Message);
+                Log.WriteLine("~~~AdvertisementWatcher_Received: " + ex.Message);
             }
             finally
             {
@@ -527,7 +527,7 @@ namespace IoTizeBLE
             }
             catch (Exception ex)
             {
-                Log.WriteLine("DeviceWatcher_Added: " + ex.Message);
+                Log.WriteLine("~~~DeviceWatcher_Added: " + ex.Message);
             }
         }
 
@@ -601,7 +601,7 @@ namespace IoTizeBLE
             }
             catch (Exception ex)
             {
-                Log.WriteLine("DeviceWatcher_Updated: " + ex.Message);
+                Log.WriteLine("~~~DeviceWatcher_Updated: " + ex.Message);
             }
         }
 
@@ -654,7 +654,7 @@ namespace IoTizeBLE
             }
             catch (Exception ex)
             {
-                Log.WriteLine("DeviceWatcher_Removed: " + ex.Message);
+                Log.WriteLine("~~~DeviceWatcher_Removed: " + ex.Message);
             }
         }
 
@@ -705,7 +705,7 @@ namespace IoTizeBLE
                             Windows.UI.Core.CoreDispatcherPriority.Normal,
                             () =>
                         {
-                            Log.WriteLine("Finding device: " + dev.Name);
+                            Log.WriteLine("~~~Finding device: " + dev.Name);
                             BluetoothLEDevices.Add(dev);
                             OnPropertyChanged(new PropertyChangedEventArgs("DeviceList"));
                         });

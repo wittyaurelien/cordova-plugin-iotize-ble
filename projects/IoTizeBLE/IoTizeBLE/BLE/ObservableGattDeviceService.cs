@@ -254,7 +254,7 @@ namespace IoTizeBLE
                 {
                     if (ex is TaskCanceledException)
                     {
-                        Log.WriteLine("Getting characteristics took too long.");
+                        Log.WriteLine("!!!Getting characteristics took too long.");
                         Name += " - Timed out getting some characteristics";
                         return false;
                     }
@@ -262,7 +262,7 @@ namespace IoTizeBLE
             }
             catch (Exception ex)
             {
-                Log.WriteLine("getAllCharacteristics: Exception - {0}" + ex.Message);
+                Log.WriteLine("!!!getAllCharacteristics: Exception - {0}" + ex.Message);
                 throw;
             }
             return true;

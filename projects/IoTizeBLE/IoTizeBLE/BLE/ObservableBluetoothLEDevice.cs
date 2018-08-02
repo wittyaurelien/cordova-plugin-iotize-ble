@@ -463,7 +463,7 @@ namespace IoTizeBLE
         public async Task<bool> Connect()
         {
             bool ret = false;
-            string debugMsg = String.Format("Connect: ");
+            string debugMsg = String.Format("~~~~Connect: ");
       
             Log.WriteLine(debugMsg + "Entering");
 
@@ -791,7 +791,7 @@ namespace IoTizeBLE
                 {
                     Request current = RequestedCommands.Dequeue();
 
-                    Log.WriteLine("--->Manage request :" + current.index + " in " + Environment.CurrentManagedThreadId.ToString());
+                    Log.WriteLine("~~~~ Manage request :" + current.index + " in " + Environment.CurrentManagedThreadId.ToString());
 
                     await ActualSendRequest(current);
                 }
@@ -906,7 +906,7 @@ namespace IoTizeBLE
                 packet[i + 1] = m_TX_buffer[offset + i];
             }
 
-            Log.WriteLine(" ---------------------- send: " + CurrentRequest.index + " data=[" + BitConverter.ToString(packet, 0, packet.Length) + "]");
+            Log.WriteLine("~~~ send: " + CurrentRequest.index + " data=[" + BitConverter.ToString(packet, 0, packet.Length) + "]");
 
             Windows.Storage.Streams.IBuffer packetBuffer = GattConvert.ToIBufferFromArray(packet);
 
@@ -970,7 +970,7 @@ namespace IoTizeBLE
                 }
 
                 CurrentRequest.SetResponse(receivedResponse);
-                Log.WriteLine(" ---------------------- get: "+ CurrentRequest.index + " data=[" + BitConverter.ToString(e.Response, 0, e.Response.Length) + "]");
+                Log.WriteLine("~~~ get: "+ CurrentRequest.index + " data=[" + BitConverter.ToString(e.Response, 0, e.Response.Length) + "]");
 
             }
 

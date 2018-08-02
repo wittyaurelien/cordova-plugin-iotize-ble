@@ -350,7 +350,7 @@ namespace IoTizeBLE
             }
             catch (Exception ex)
             {
-                Log.WriteLine("Exception: " + ex.Message);
+                Log.WriteLine("!!!Exception: " + ex.Message);
                 Value = "Exception!";
             }
         }
@@ -377,19 +377,19 @@ namespace IoTizeBLE
                             GattClientCharacteristicConfigurationDescriptorValue.Indicate);
                 if (result == GattCommunicationStatus.Success)
                 {
-                    Log.WriteLine("Successfully registered for indications");
+                    Log.WriteLine("<---Successfully registered for indications");
                     IsIndicateSet = true;
                     return true;
                 }
                 else if (result == GattCommunicationStatus.ProtocolError)
                 {
-                    Log.WriteLine("Error registering for indications: Protocol Error");
+                    Log.WriteLine("!!!Error registering for indications: Protocol Error");
                     IsIndicateSet = false;
                     return false;
                 }
                 else if (result == GattCommunicationStatus.Unreachable)
                 {
-                    Log.WriteLine("Error registering for indications: Unreachable");
+                    Log.WriteLine("!!!Error registering for indications: Unreachable");
                     IsIndicateSet = false;
                     return false;
                 }
@@ -397,13 +397,13 @@ namespace IoTizeBLE
             catch (UnauthorizedAccessException ex)
             {
                 // This usually happens when a device reports that it support indicate, but it actually doesn't.
-                Log.WriteLine("Unauthorized Exception: " + ex.Message);
+                Log.WriteLine("!!!Unauthorized Exception: " + ex.Message);
                 IsIndicateSet = false;
                 return false;
             }
             catch (Exception ex)
             {
-                Log.WriteLine("Generic Exception: " + ex.Message);
+                Log.WriteLine("!!!Generic Exception: " + ex.Message);
                 IsIndicateSet = false;
                 return false;
             }
@@ -434,19 +434,19 @@ namespace IoTizeBLE
                             GattClientCharacteristicConfigurationDescriptorValue.None);
                 if (result == GattCommunicationStatus.Success)
                 {
-                    Log.WriteLine("Successfully un-registered for indications");
+                    Log.WriteLine("!!!Successfully un-registered for indications");
                     IsIndicateSet = false;
                     return true;
                 }
                 else if (result == GattCommunicationStatus.ProtocolError)
                 {
-                    Log.WriteLine("Error un-registering for indications: Protocol Error");
+                    Log.WriteLine("!!!Error un-registering for indications: Protocol Error");
                     IsIndicateSet = true;
                     return false;
                 }
                 else if (result == GattCommunicationStatus.Unreachable)
                 {
-                    Log.WriteLine("Error un-registering for indications: Unreachable");
+                    Log.WriteLine("!!!Error un-registering for indications: Unreachable");
                     IsIndicateSet = true;
                     return false;
                 }
@@ -454,7 +454,7 @@ namespace IoTizeBLE
             catch (UnauthorizedAccessException ex)
             {
                 // This usually happens when a device reports that it support indicate, but it actually doesn't.
-                Log.WriteLine("Exception: " + ex.Message);
+                Log.WriteLine("!!!Exception: " + ex.Message);
                 IsIndicateSet = true;
                 return false;
             }
@@ -484,19 +484,19 @@ namespace IoTizeBLE
                             GattClientCharacteristicConfigurationDescriptorValue.Notify);
                 if (result == GattCommunicationStatus.Success)
                 {
-                    Log.WriteLine("Successfully registered for notifications");
+                    Log.WriteLine("~~~Successfully registered for notifications");
                     IsNotifySet = true;
                     return true;
                 }
                 else if (result == GattCommunicationStatus.ProtocolError)
                 {
-                    Log.WriteLine("Error registering for notifications: Protocol Error");
+                    Log.WriteLine("!!!Error registering for notifications: Protocol Error");
                     IsNotifySet = false;
                     return false;
                 }
                 else if (result == GattCommunicationStatus.Unreachable)
                 {
-                    Log.WriteLine("Error registering for notifications: Unreachable");
+                    Log.WriteLine("!!!Error registering for notifications: Unreachable");
                     IsNotifySet = false;
                     return false;
                 }
@@ -504,13 +504,13 @@ namespace IoTizeBLE
             catch (UnauthorizedAccessException ex)
             {
                 // This usually happens when a device reports that it support indicate, but it actually doesn't.
-                Log.WriteLine("Unauthorized Exception: " + ex.Message);
+                Log.WriteLine("!!!Unauthorized Exception: " + ex.Message);
                 IsNotifySet = false;
                 return false;
             }
             catch (Exception ex)
             {
-                Log.WriteLine("Generic Exception: " + ex.Message);
+                Log.WriteLine("!!!Generic Exception: " + ex.Message);
                 IsNotifySet = false;
                 return false;
             }
@@ -541,19 +541,19 @@ namespace IoTizeBLE
                             GattClientCharacteristicConfigurationDescriptorValue.None);
                 if (result == GattCommunicationStatus.Success)
                 {
-                    Log.WriteLine("Successfully un-registered for notifications");
+                    Log.WriteLine("~~~Successfully un-registered for notifications");
                     IsNotifySet = false;
                     return true;
                 }
                 else if (result == GattCommunicationStatus.ProtocolError)
                 {
-                    Log.WriteLine("Error un-registering for notifications: Protocol Error");
+                    Log.WriteLine("!!!Error un-registering for notifications: Protocol Error");
                     IsNotifySet = true;
                     return false;
                 }
                 else if (result == GattCommunicationStatus.Unreachable)
                 {
-                    Log.WriteLine("Error un-registering for notifications: Unreachable");
+                    Log.WriteLine("!!!Error un-registering for notifications: Unreachable");
                     IsNotifySet = true;
                     return false;
                 }

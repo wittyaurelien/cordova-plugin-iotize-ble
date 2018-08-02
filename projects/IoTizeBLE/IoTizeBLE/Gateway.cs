@@ -73,7 +73,7 @@ namespace IoTizeBLE
         {
             try
             {
-                Log.WriteLine("-->Start Enumeration");
+                Log.WriteLine("\n-->Start Enumeration");
                 Context.StartEnumeration();
                 Context.PropertyChanged += Context_PropertyChanged;
                 _discoveryCallback = callback;
@@ -94,7 +94,7 @@ namespace IoTizeBLE
                 if ( (_discoveryCallback != null) && (Context.BluetoothLEDevices.Last() != null) )
                 {
 
-                    Log.WriteLine("---> found device" + Context.BluetoothLEDevices.Last().Name);
+                    Log.WriteLine("~~~Found device" + Context.BluetoothLEDevices.Last().Name);
                     _discoveryCallback(Context.BluetoothLEDevices.Last().Name);
                 }
             }
@@ -104,6 +104,7 @@ namespace IoTizeBLE
         {
             try
             {
+                Log.WriteLine("\n-->Stop Enumeration");
                 Context.StopEnumeration();
                 Context.PropertyChanged -= Context_PropertyChanged;
             }
@@ -124,7 +125,7 @@ namespace IoTizeBLE
 
             if (connectionState == ConnectionState._inConnection)
             {
-                Log.WriteLine("---> wait for Connecting");
+                Log.WriteLine("~~~~Wait for Connecting");
                 return Task.Run(() => doWaitConnection())
                    .AsAsyncOperation();
                 
@@ -132,7 +133,7 @@ namespace IoTizeBLE
             else
             {
                 connectionState = ConnectionState._inConnection;
-                Log.WriteLine("---> Start Connecting");
+                Log.WriteLine("\n--->Start Connecting");
                 return Task.Run(() => doStartConnection(device_id))
                    .AsAsyncOperation();
             }
@@ -144,7 +145,7 @@ namespace IoTizeBLE
 
             if (connectionState == ConnectionState._inDisconnection)
             {
-                Log.WriteLine("---> wait for Disconnecting");
+                Log.WriteLine("~~~wait for Disconnecting");
                 return Task.Run(() => doWaitDisconnection())
                    .AsAsyncOperation();
 
@@ -152,7 +153,7 @@ namespace IoTizeBLE
             else
             {
                 connectionState = ConnectionState._inDisconnection;
-                Log.WriteLine("---> Start Disconnecting");
+                Log.WriteLine("\n--->Start Disconnecting");
                 return Task.Run(() => doStartDisConnection(device_id))
                    .AsAsyncOperation();
             }
@@ -205,7 +206,7 @@ namespace IoTizeBLE
         {
             bool successfull = false;
 
-            lastError = "Connecting ...";
+            lastError = "";
 
             //step 1: connect to device
             try
@@ -213,10 +214,9 @@ namespace IoTizeBLE
                 SelectedDevice = Context.BluetoothLEDevices.FirstOrDefault(item => item.Name == device_id);
                 if (SelectedDevice != null)
                 {
-                    Log.WriteLine("---> In Connection");
                     IsDeviceConnected = await SelectedDevice.Connect();
                     successfull = IsDeviceConnected;
-                    Log.WriteLine("---> End of Connection " + successfull);
+                    Log.WriteLine("~~~End of Connection " + successfull);
                     SelectedDevice.PropertyChanged += SelectedDevice_PropertyChanged;
                 }
                 else
@@ -229,7 +229,7 @@ namespace IoTizeBLE
             catch (Exception e)
             {
                 lastError = "Exception in connection " + e.Message;
-                Log.WriteLine("---> "+ lastError);
+                Log.WriteLine("!!!"+ lastError);
                 connectionState = ConnectionState._error;
                 return false;
             }
@@ -237,7 +237,7 @@ namespace IoTizeBLE
             if (successfull == false)
             {
                 lastError = "Failed in connection " + device_id;
-                Log.WriteLine("---> " + lastError);
+                Log.WriteLine("!!!" + lastError);
                 connectionState = ConnectionState._error;
                 return false;
             }
@@ -245,7 +245,7 @@ namespace IoTizeBLE
             lastError = "Successfull connection";
 
             connectionState = ConnectionState._connected;
-            Log.WriteLine("---> " + lastError);
+            Log.WriteLine("<---" + lastError);
             return true;
         }
 
@@ -253,7 +253,7 @@ namespace IoTizeBLE
         {
             bool successfull = false;
 
-            lastError = "Disconnection ...";
+            lastError = "";
 
             //step 1: connect to device
             try
@@ -271,7 +271,7 @@ namespace IoTizeBLE
             catch (Exception e)
             {
                 lastError = "Exception in disconnection " + e.Message;
-                Log.WriteLine("---> " + lastError);
+                Log.WriteLine("!!!" + lastError);
                 connectionState = ConnectionState._error;
                 return false;
             }
@@ -279,7 +279,7 @@ namespace IoTizeBLE
             if (successfull == false)
             {
                 lastError = "Failed in disconnection " + device_id;
-                Log.WriteLine("---> " + lastError);
+                Log.WriteLine("!!!" + lastError);
                 connectionState = ConnectionState._error;
                 return false;
             }
@@ -288,7 +288,7 @@ namespace IoTizeBLE
             SelectedDevice = null;
 
             connectionState = ConnectionState._connected;
-            Log.WriteLine("---> " + lastError);
+            Log.WriteLine("<---" + lastError);
             return true;
         }
 
@@ -299,7 +299,7 @@ namespace IoTizeBLE
                 if ((_disconnectionCallback != null) && (SelectedDevice != null))
                 {
 
-                    Log.WriteLine("---> device disconnected" + SelectedDevice.Name);
+                    Log.WriteLine("<---device disconnected" + SelectedDevice.Name);
                     _disconnectionCallback();
                 }
             }
@@ -310,6 +310,8 @@ namespace IoTizeBLE
 
         public IAsyncOperation<string> sendRequest(string device, string data)
         {
+            Log.WriteLine("\n--->Send Request " + data);
+
             IBuffer mybuffer = GattConvert.ToIBufferFromHexString(data);
             byte[] mybyteArray = GattConvert.ToByteArray(mybuffer);
 
@@ -320,6 +322,7 @@ namespace IoTizeBLE
                 index++;
             }
 
+          
             return Task.Run(() => waitSendRequest(req))
                .AsAsyncOperation();
         }
@@ -333,6 +336,7 @@ namespace IoTizeBLE
             if (req == null)
                 return (lastError = "Error: Unable to send request");
 
+            Log.WriteLine("~~~Waiting : " + req.index);
             bool isanswered = await req.IsAnswered();
 
             if (!isanswered)
@@ -341,7 +345,7 @@ namespace IoTizeBLE
             IBuffer myresponse = GattConvert.ToIBufferFromArray(req.GetResponse());
             string strresponse = GattConvert.ToHexString(myresponse);
 
-            Log.WriteLine("--- Response : " + req.index + " in "+ Environment.CurrentManagedThreadId + "with " + strresponse);
+            Log.WriteLine("<---Response : " + req.index + " in "+ Environment.CurrentManagedThreadId + "with " + strresponse);
             return strresponse;            
         }
     }
