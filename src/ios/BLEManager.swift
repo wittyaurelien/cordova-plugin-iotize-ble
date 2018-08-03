@@ -24,7 +24,8 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     var discoveredPeripherals = [CBPeripheral]()  // table of discoveredPeripherals, initially it is empty
     var stateChangeCompletion: Completion?        //callback when the state is retreived
     var connectionChangeCompletion: Completion?   //callback when the connection state is retreived
-   
+    var discoveryCompletion: CompletionWithResponse?   //callback when the connection state is retreived
+    
     private var connectedDevice: BLEPeripheral?
   
      override init()
@@ -35,6 +36,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         stateChangeCompletion = nil
         connectionChangeCompletion = nil
         connectedDevice = nil
+        discoveryCompletion = nil
     }
     
     func checkState(completion: @escaping Completion){
@@ -43,10 +45,13 @@ class BLEManager: NSObject, CBCentralManagerDelegate
 
     /* search for devices, scanForPeripherals function is been called
      */
-    func beginScan(){        
+    func beginScan(completion: @escaping CompletionWithResponse){
+        discoveryCompletion = completion
         discoveredPeripherals.removeAll()
         centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
+        
         print("--> Start Scanning")
+        discoveryCompletion!("Ok", nil)
     }
     
     func stopScan(){        
@@ -59,11 +64,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     func connect(_ device: CBPeripheral){        
         centralManager.stopScan()
 
-        if (connectedDevice != nil){
-            if (connectedDevice!.bleDevice.name != device.name) {
-                disconnect(device:  connectedDevice!)                
-            }
-        }else {
+        if (connectedDevice == nil){
             connectedDevice = BLEPeripheral()
         }
 
@@ -96,10 +97,15 @@ class BLEManager: NSObject, CBCentralManagerDelegate
 
     /* call the function cancelPeripheralConnection to disconnect
      */
-    func disconnect(device: BLEPeripheral){        
-        centralManager.cancelPeripheralConnection(device.bleDevice)  
-        device.disconnect()
-        connectedDevice = nil  
+    func disconnect( completion: @escaping Completion){
+        
+        connectionChangeCompletion = completion
+        //for the moment we just handle one device
+        if ( connectedDevice != nil ){
+            centralManager.cancelPeripheralConnection(connectedDevice!.bleDevice)
+            connectedDevice!.disconnect()
+            connectedDevice = nil
+        }
     }
     
     func checkConnection() -> Bool {
@@ -145,7 +151,10 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         {
             if let name = advertisementData["kCBAdvDataLocalName"] as? String //define name
             {  
-                discoveredPeripherals.append(peripheral)  // add peripheral to the table          
+                discoveredPeripherals.append(peripheral)  // add peripheral to the table
+                if ( discoveryCompletion != nil){
+                    discoveryCompletion!( peripheral.name! , nil)
+                }
             }
         }
     }

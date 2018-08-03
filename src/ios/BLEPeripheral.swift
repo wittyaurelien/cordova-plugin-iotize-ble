@@ -53,7 +53,7 @@ class Request: NSObject{
             return rxString;
         }
         for i in 0..<length{
-            if (i!=0){
+            if (i != 0 ){
                  rxString += "-"
             }
             rxString += String(format: "%02X",bytes[Int(i)])
@@ -178,6 +178,12 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         if error != nil {
             lastError = IoTizeBleError.InvalidWriteData(peripheral:  peripheral)
             return
+        }
+        else{
+            if ( currentTxPacket > 0){
+                currentTxPacket = currentTxPacket - 1
+                send_one_TX_Packet(currentTxPacket)
+            }
         }
     }
     

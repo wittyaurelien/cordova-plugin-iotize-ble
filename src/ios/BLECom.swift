@@ -56,8 +56,8 @@ struct IoTizeBleError: Error {
               status: CDVCommandStatus_OK,
               messageAs: result
               )
-    pluginResult.setKeepCallbackAsBool(true);
-    self.commandDelegate!.send( pluginResult, callbackId: command.callbackId, )
+    pluginResult!.setKeepCallbackAs(true);
+    self.commandDelegate!.send( pluginResult, callbackId: command.callbackId )
   }
 
   func sendError(command: CDVInvokedUrlCommand, result: String){
@@ -100,8 +100,8 @@ struct IoTizeBleError: Error {
   @objc(startScan:)
   func startScan(command: CDVInvokedUrlCommand) {        
      
-      self.bleController.startScan(completionWithResponse: {
-        (result: string, error: IoTizeBleError?) -> () in
+      self.bleController.beginScan(completion: {
+        (result: String, error: IoTizeBleError?) -> () in
         
          DispatchQueue.main.async {
             
@@ -110,7 +110,7 @@ struct IoTizeBleError: Error {
             self.sendError(command: command, result: error!.message)
           }
           else {
-            self.sendSuccessWithResult(command: command, result: string)
+            self.sendSuccessWithResponse(command: command, result: result)
           }
         } 
       })
@@ -165,7 +165,7 @@ struct IoTizeBleError: Error {
 
     let nameDevice = command.arguments[0] as? String ?? ""
     
-    bleController.disConnect(device: nameDevice, completion: {
+    bleController.disconnect( completion: {
         (error: IoTizeBleError?) -> () in
         
         DispatchQueue.main.async {
