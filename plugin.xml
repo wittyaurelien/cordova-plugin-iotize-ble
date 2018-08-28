@@ -19,8 +19,20 @@
         <param name="android-package" value="com.iotize.plugin.BLECom"/>
       </feature>
     </config-file>
+    <framework src="src/android/build.gradle" custom="true" type="gradleReference" />
+    <source-file src="src/android/src/BLECom.java" target-dir="src/com/iotize/plugin"/>
+    <!-- <lib-file src="src/android/libs/iotize-device-api.jar"/>
+    <lib-file src="src/android/libs/iotize-device-com-ble.jar"/> -->
+    <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
+    <resource-file src="src/android/libs/iotize-device-api-release.aar" target="../../libs/iotize-device-api.aar" />
+    <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" />
 
-    <source-file src="src/android/BLECom.java" target-dir="src/com/iotize/plugin"/>
+
+      <config-file target="AndroidManifest.xml" parent="/manifest">
+          <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+          <uses-permission android:name="android.permission.BLUETOOTH"/>
+          <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+      </config-file>
   </platform>
 
   <platform name="windows">
