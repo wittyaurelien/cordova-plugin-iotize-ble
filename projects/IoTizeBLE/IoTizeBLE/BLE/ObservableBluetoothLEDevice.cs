@@ -602,6 +602,7 @@ namespace IoTizeBLE
                     {
                         BluetoothLEDevice.ConnectionStatusChanged -= BluetoothLEDevice_ConnectionStatusChanged;
                         BluetoothLEDevice.NameChanged -= BluetoothLEDevice_NameChanged;
+                        BluetoothLEDevice.Dispose();
                         BluetoothLEDevice = null;
                         IsConnected = false;
                         IsPaired = false;

@@ -47,7 +47,13 @@ module.exports = {
         cordova.exec(success, failure, 'BLECom', 'disConnect', [device_id]);    
     
     },
+    
+    isConnected: function (device_id, success, failure) {
 
+        cordova.exec(success, failure, 'BLECom', 'isConnected', [device_id]);    
+    
+    },
+    
     send: function (device_id, data, success, failure) {
         
         cordova.exec(success, failure, 'BLECom', 'sendRequest', [device_id, data]);
