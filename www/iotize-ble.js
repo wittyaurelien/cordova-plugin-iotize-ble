@@ -59,5 +59,4 @@ module.exports = {
         cordova.exec(success, failure, 'BLECom', 'getLastError', []);
     
     },
-  
 };

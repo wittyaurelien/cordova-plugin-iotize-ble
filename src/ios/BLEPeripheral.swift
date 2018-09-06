@@ -29,7 +29,7 @@ class Request: NSObject{
                 }
                 Thread.sleep(forTimeInterval: 0.060)
             }
-            self.completion( "", IoTizeBleError.TimedOutRequest())
+            self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
         }
     }
 
@@ -53,9 +53,9 @@ class Request: NSObject{
             return rxString;
         }
         for i in 0..<length{
-            if (i != 0 ){
-                 rxString += "-"
-            }
+//            if (i != 0 ){
+//                 rxString += "-"
+//            }
             rxString += String(format: "%02X",bytes[Int(i)])
         }
     
@@ -67,6 +67,8 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     public var bleDevice: CBPeripheral!
     private var bleManager: BLEManager!
+    
+    private var requestQueue = Queue<Request>()
     
     private var notifyCharacteristic: CBCharacteristic!
     private var notifyCharacteristicResponseType: CBCharacteristicWriteType!
@@ -102,6 +104,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     override init(){
         super.init()
+        performSelector(inBackground: #selector(manageRequestQueue), with: nil)
     }
     
     func connect( device: CBPeripheral, manager: BLEManager){        
@@ -244,6 +247,8 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         
             if (currentRequest != nil){
                 currentRequest!.rxData = Request.byteArrayToHexString(rxBuffer, rxBufferLength)
+                print("##> ---------------------- received answer \(currentRequest!.txData)")
+                currentRequest = nil
             }
 
             flagDataAvailable = true
@@ -258,14 +263,17 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     }
     
     func send( data: String, completion: @escaping CompletionWithResponse){
-        DispatchQueue.main.async {                 
-            self.rxBufferLength = 0
-            self.flagDataAvailable = false
-            self.currentRequest = Request(txData: data, completion: completion)
-            self.currentRequest!.waitForResponse()
-            
-            self.send_All_TX_Packets(Request.stringToHexArray(data))
-        }
+//        DispatchQueue.main.async {
+//            self.rxBufferLength = 0
+//            self.flagDataAvailable = false
+//            self.currentRequest = Request(txData: data, completion: completion)
+//            self.currentRequest!.waitForResponse()
+//            self.send_All_TX_Packets(Request.stringToHexArray(data))
+//        }
+        let req = Request(txData: data,completion: completion)
+        req.waitForResponse()
+        print("##> --------------------------- sen request \(data)")
+        requestQueue.enqueue(req);
     }
 
     func send_All_TX_Packets(_ data: [UInt8]){
@@ -328,5 +336,26 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     func isFirmwareUpToDate(_ curMajor: Int, _ curMinor : Int, _ checkMajor : Int, _ checkMinor : Int) -> Bool{
         return ((curMajor > checkMajor) || ((curMajor == checkMajor) && (curMinor >= checkMinor)))
     }
+    
+    @objc func manageRequestQueue() {
+        repeat {
+
+            //if we are not waiting for a response and we have something to send
+            if ( (self.currentRequest == nil) && (!requestQueue.isEmpty)){
+                let request = requestQueue.dequeue()!
+                self.rxBufferLength = 0
+                self.flagDataAvailable = false
+                self.currentRequest = request
+                print ("##> ------------------- Actual sent of \(request.txData)")
+                self.send_All_TX_Packets(Request.stringToHexArray(request.txData))
+            }
+            Thread.sleep(forTimeInterval: 0.01)
+
+        } while true
+    }
+    
+//    func enqueueRequest (data: String, completion: @escaping CompletionWithResponse) {
+//        requestQueue.enqueue(Request(txData: data,completion: completion))
+//    }
 
 }

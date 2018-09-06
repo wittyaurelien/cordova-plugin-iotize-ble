@@ -9,7 +9,7 @@
 import CoreBluetooth
 
 typealias Completion = (IoTizeBleError?) -> ()
-typealias CompletionWithResponse = (String , IoTizeBleError?) -> ()
+typealias CompletionWithResponse = (Any , IoTizeBleError?) -> ()
 
 
 /// The functions within this class are all callbacks from the BLE device and serves the purpose of correctly connecting with the device and retrieving its informations
@@ -32,7 +32,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     {
         super.init()
 
-        centralManager = CBCentralManager(delegate: self, queue: nil)
+        centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
         stateChangeCompletion = nil
         connectionChangeCompletion = nil
         connectedDevice = nil
@@ -46,12 +46,20 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     /* search for devices, scanForPeripherals function is been called
      */
     func beginScan(completion: @escaping CompletionWithResponse){
-        discoveryCompletion = completion
-        discoveredPeripherals.removeAll()
-        centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
-        
-        print("--> Start Scanning")
-        discoveryCompletion!("Ok", nil)
+        if #available(iOS 10.0, *) {
+            if (centralManager.state == CBManagerState.poweredOn){
+                discoveryCompletion = completion
+                discoveredPeripherals.removeAll()
+                centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
+                
+                print("--> Start Scanning")
+                discoveryCompletion!("Ok", nil)
+            } else {
+                print("#######> ---- Bluetooth not available yet")
+            }
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     func stopScan(){        
@@ -67,8 +75,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         if (connectedDevice == nil){
             connectedDevice = BLEPeripheral()
         }
-
-        connectedDevice!.connect(device: device, manager: self)
+        //connectedDevice!.connect(device: device, manager: self)
         centralManager.connect(device, options: nil)
         print("--> Start Connecting")
     }
@@ -82,10 +89,12 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         connectionChangeCompletion = completion
         for item : CBPeripheral in discoveredPeripherals{
             
-            let name = item.name
+            let name = item.identifier.uuidString
+            print("name: " + name)
+            print("device: " + device)
             if (name != nil) {
                 
-                if (name! == device){
+                if (name == device){
                     
                     connect(item)
                     break;
@@ -118,6 +127,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         var error: IoTizeBleError?         
         switch centralManager.state{
             case .poweredOn:
+                print("------------> Central Manager is On")
                 break
             case .poweredOff:
                 error = IoTizeBleError.BlePoweredOff()
@@ -153,7 +163,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             {  
                 discoveredPeripherals.append(peripheral)  // add peripheral to the table
                 if ( discoveryCompletion != nil){
-                    discoveryCompletion!( peripheral.name! , nil)
+                    discoveryCompletion!( peripheral , nil)
                 }
             }
         }
@@ -161,18 +171,18 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     
     /* returns the currently discovered list of devices names
      */
-    func getDeviceList() -> String {        
-        var listStr:String = ""; //string list to return        
+    func getDeviceList() -> String {
+        var listStr:String = ""; //string list to return
         //names are separated by \n
-        for item : CBPeripheral in discoveredPeripherals{            
+        for item : CBPeripheral in discoveredPeripherals{
             let name = item.name
-            if ( (name != nil) && (name!.count != 0) ) {                
-                listStr = name! + "\n" + listStr            
-            }            
-        }        
-        return listStr;        
+            if ( (name != nil) && (name!.count != 0) ) {
+                listStr = name! + "\n" + listStr
+            }
+        }
+        return listStr;
     }
-        
+    
     /* this function aim to connect the CBPeripheral
      * we call bluetoothConnected using peripheral as paramater
      */
@@ -232,5 +242,10 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         }else {            
             connectedDevice!.send(data: data, completion: completion)
         }
+    }
+    
+    @available(iOS 10.0, *)
+    func isReady() -> Bool {
+        return centralManager.state == CBManagerState.poweredOn
     }
 }

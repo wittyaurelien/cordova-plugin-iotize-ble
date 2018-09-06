@@ -21,6 +21,10 @@
     </config-file>
     <framework src="src/android/build.gradle" custom="true" type="gradleReference" />
     <source-file src="src/android/src/BLECom.java" target-dir="src/com/iotize/plugin"/>
+    <source-file src="src/android/src/BLEComError.java" target-dir="src/com/iotize/plugin"/>
+    <source-file src="src/android/src/JSONBuilder.java" target-dir="src/com/iotize/plugin"/>
+    <source-file src="src/android/src/ArgsHelper.java" target-dir="src/com/iotize/plugin"/>
+    <source-file src="src/android/src/PluginResponse.java" target-dir="src/com/iotize/plugin"/>
     <!-- <lib-file src="src/android/libs/iotize-device-api.jar"/>
     <lib-file src="src/android/libs/iotize-device-com-ble.jar"/> -->
     <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
@@ -54,6 +58,8 @@
   <source-file src="src/ios/BLECom.swift" />
   <source-file src="src/ios/BLEManager.swift" />
   <source-file src="src/ios/BLEPeripheral.swift" />
+  <source-file src="src/ios/CBPeripheralConverter.swift" />
+  <source-file src="src/ios/Queue.swift" />
   </platform>
 
 </plugin>
