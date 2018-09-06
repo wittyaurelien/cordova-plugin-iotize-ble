@@ -12,7 +12,7 @@
     function handleDiscoveryCallback( jsonResponse ) {
         
         if (discoveryCallback != null){            
-            discoveryCallback( jsonResponse, { keepCallback: true });
+            discoveryCallback( JSON.parse(jsonResponse), { keepCallback: true });
         }
     }
 
@@ -122,6 +122,38 @@
 
         },
 
+        isConnected: async function (successCallback, errorCallback, device) {
+
+            if (!checkProxy()){
+                errorCallback("Internal Error!");
+                return;
+            }
+            var success = false;
+            try {
+                success = await iotizeProxy.isConnected(device);
+            } catch (e) {
+                errorCallback(e);
+            }
+         
+            successCallback(success);            
+
+        },
+        CheckAvailable: async function (successCallback, errorCallback) {
+
+            if (!checkProxy()){
+                errorCallback("Internal Error!");
+                return;
+            }
+            var success = false;
+            try {
+                success = await iotizeProxy.CheckAvailable();
+            } catch (e) {
+                errorCallback(e);
+            }
+         
+            successCallback(success);            
+
+        },
         sendRequest: async function (successCallback, errorCallback, request) {
 
             if (!checkProxy()){

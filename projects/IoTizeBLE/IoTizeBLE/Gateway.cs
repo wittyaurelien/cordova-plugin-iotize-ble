@@ -7,6 +7,7 @@ using Windows.Foundation;
 using Windows.Storage.Streams;
 using IoTizeBLE.Utility;
 using System.Collections.ObjectModel;
+using Windows.Data.Json;
 
 namespace IoTizeBLE
 {
@@ -18,6 +19,23 @@ namespace IoTizeBLE
         _inDisconnection = 3,
         _error = 4
     }
+
+    class DeviceInfo
+    {
+        public string name;
+        public string address;
+        public int rssi;
+
+        public JsonObject ToJsonObject()
+        {
+            JsonObject infoobject = new JsonObject();
+            infoobject.SetNamedValue("name", JsonValue.CreateStringValue(name));
+            infoobject.SetNamedValue("address", JsonValue.CreateStringValue(address));
+            infoobject.SetNamedValue("rssi", JsonValue.CreateNumberValue(rssi));
+
+            return infoobject;
+        }
+    };
 
     //Callback called when a new device is detected
     public delegate void IoTizeDiscoveryCallback(string jsonResult);
@@ -63,9 +81,14 @@ namespace IoTizeBLE
             return lastError;
         }
 
-        public bool isConnected()
+        public bool checkAvailable()
         {
-            return (connectionState == ConnectionState._connected);
+
+            if (Context.IsCentralRoleSupported == false)
+                return false;
+            else
+                return true;
+
         }
 
 
@@ -95,7 +118,11 @@ namespace IoTizeBLE
                 {
 
                     Log.WriteLine("~~~Found device" + Context.BluetoothLEDevices.Last().Name);
-                    _discoveryCallback(Context.BluetoothLEDevices.Last().Name);
+                    DeviceInfo info = new DeviceInfo();
+                    info.name = Context.BluetoothLEDevices.Last().Name;
+                    info.address = Context.BluetoothLEDevices.Last().BluetoothAddressAsString;
+                    info.rssi = Context.BluetoothLEDevices.Last().RSSI;
+                    _discoveryCallback(info.ToJsonObject().ToString());
                 }
             }
         }
@@ -160,6 +187,21 @@ namespace IoTizeBLE
 
         }
 
+        public bool isConnected(string device_id)
+        {
+           
+
+            if (connectionState == ConnectionState._connected)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
         private async Task<bool> doWaitConnection()
         {
             while (connectionState == ConnectionState._inConnection)
@@ -211,7 +253,7 @@ namespace IoTizeBLE
             //step 1: connect to device
             try
             {
-                SelectedDevice = Context.BluetoothLEDevices.FirstOrDefault(item => item.Name == device_id);
+                SelectedDevice = Context.BluetoothLEDevices.FirstOrDefault(item => item.BluetoothAddressAsString == device_id);
                 if (SelectedDevice != null)
                 {
                     IsDeviceConnected = await SelectedDevice.Connect();
@@ -344,7 +386,7 @@ namespace IoTizeBLE
 
             IBuffer myresponse = GattConvert.ToIBufferFromArray(req.GetResponse());
             string strresponse = GattConvert.ToHexString(myresponse);
-
+            strresponse = strresponse.Replace("-", "");
             Log.WriteLine("<---Response : " + req.index + " in "+ Environment.CurrentManagedThreadId + "with " + strresponse);
             return strresponse;            
         }
