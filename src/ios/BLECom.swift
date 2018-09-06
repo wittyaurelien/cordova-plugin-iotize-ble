@@ -172,24 +172,6 @@ struct IoTizeBleError: Error {
         
         let deviceUUID = command.arguments[0] as? String ?? ""
         
-        // Disconnecting from former device before connecting to the new one
-        
-        bleController.disconnect( completion: {
-            (error: IoTizeBleError?) -> () in
-            
-            DispatchQueue.main.async {
-                
-                if (error != nil){
-                    self.lastError = error
-                    self.sendError(command: command, result: error!.message)
-                }
-                else {
-                    print("##> Sending Disconnected Ok")
-                    self.sendSuccess(command: command, result: "Ok")
-                }
-            }
-        })
-        
         bleController.connectWithUUID(device: deviceUUID, completion: {
             (error: IoTizeBleError?) -> () in
             

@@ -22,12 +22,12 @@ class Request: NSObject{
 
     public func waitForResponse(){
         DispatchQueue.global().async {
-            for _ in 1...1000 {
+            for _ in 1...200 { // 10s timeout
                 if ( self.rxData != nil ) {
                     self.completion(self.rxData!,nil)
                     return
                 }
-                Thread.sleep(forTimeInterval: 0.060)
+                Thread.sleep(forTimeInterval: 0.050)
             }
             self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
         }
@@ -353,9 +353,4 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
 
         } while true
     }
-    
-//    func enqueueRequest (data: String, completion: @escaping CompletionWithResponse) {
-//        requestQueue.enqueue(Request(txData: data,completion: completion))
-//    }
-
 }
