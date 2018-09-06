@@ -82,7 +82,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     
     /* to connect to a device using its name
      */
-    func connectWithName( device: String, completion: @escaping Completion)
+    func connectWithUUID( device: String, completion: @escaping Completion)
     {
         centralManager.stopScan()
         
@@ -111,7 +111,9 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         connectionChangeCompletion = completion
         //for the moment we just handle one device
         if ( connectedDevice != nil ){
-            centralManager.cancelPeripheralConnection(connectedDevice!.bleDevice)
+            if connectedDevice!.bleDevice != nil {
+                centralManager.cancelPeripheralConnection(connectedDevice!.bleDevice)                
+            }
             connectedDevice!.disconnect()
             connectedDevice = nil
         }
@@ -214,15 +216,17 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     }
     
     
-    /* this function is used to disconnect the CBPeripheral
-     * error is used as paramater
+    /* this function is called the CBPeripheral did disconnect
+     *
      */
     func centralManager (_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?){
         
         if ( connectionChangeCompletion != nil){
-            connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
+            connectionChangeCompletion!(nil)
             connectionChangeCompletion = nil
+            return
         }
+        connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
         print("--> Error in disconnecting device. Error: \(String(describing: error?.localizedDescription))")
         connectedDevice = nil
     }
@@ -244,8 +248,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         }
     }
     
-    @available(iOS 10.0, *)
     func isReady() -> Bool {
-        return centralManager.state == CBManagerState.poweredOn
+        return centralManager.state == .poweredOn
     }
 }

@@ -119,11 +119,11 @@ struct IoTizeBleError: Error {
     }
     
     //Start scanning for IoTize devices
-    @available(iOS 10.0, *)
+    
     @objc(startScan:)
     func startScan(command: CDVInvokedUrlCommand) {
-        do {
-            if (try !self.isReady()){
+        
+        if (!self.isReady()){
                 
                 DispatchQueue.main.async {
                     Thread.sleep(forTimeInterval: 0.01)
@@ -131,10 +131,6 @@ struct IoTizeBleError: Error {
                 }
                 return
             }
-            
-        } catch {
-            print("Unsupported iOS Version")
-        }
         
         self.bleController.beginScan(completion: {
             (result: Any, error: IoTizeBleError?) -> () in
@@ -164,19 +160,37 @@ struct IoTizeBleError: Error {
     }
     
     
-    //Connect to a device using its name
+    //Connect to a device using its UUID
     @objc(connect:)
     func connect(command: CDVInvokedUrlCommand) {
         
-        //we need the name of the device
+        //we need the UUID of the device
         if (command.arguments.count == 0){
             self.sendError(command: command, result: "Connection parameter error")
             return
         }
         
-        let nameDevice = command.arguments[0] as? String ?? ""
+        let deviceUUID = command.arguments[0] as? String ?? ""
         
-        bleController.connectWithName(device: nameDevice, completion: {
+        // Disconnecting from former device before connecting to the new one
+        
+        bleController.disconnect( completion: {
+            (error: IoTizeBleError?) -> () in
+            
+            DispatchQueue.main.async {
+                
+                if (error != nil){
+                    self.lastError = error
+                    self.sendError(command: command, result: error!.message)
+                }
+                else {
+                    print("##> Sending Disconnected Ok")
+                    self.sendSuccess(command: command, result: "Ok")
+                }
+            }
+        })
+        
+        bleController.connectWithUUID(device: deviceUUID, completion: {
             (error: IoTizeBleError?) -> () in
             
             DispatchQueue.main.async {
@@ -267,12 +281,7 @@ struct IoTizeBleError: Error {
         })
     }
     
-    func isReady() throws -> Bool {
-        if #available(iOS 10.0, *) {
-            return bleController.isReady()
-        } else {
-            // Fallback on earlier versions
-            throw IoTizeBleError.BleUnsupported()
-        }
+    func isReady() -> Bool {
+        return bleController.isReady()
     }
 }
