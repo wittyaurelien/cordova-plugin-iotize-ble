@@ -12,23 +12,33 @@ import CoreBluetooth
 
 class Request: NSObject{
     let txData: String
+    var cancelled : Bool
     let completion: CompletionWithResponse
     var rxData: String?
+    
+    static let waitingTimeInterval: Double = 0.010
 
     init(txData: String, completion: @escaping CompletionWithResponse) {
         self.txData = txData
         self.completion = completion
+        self.cancelled = false
     }
 
     public func waitForResponse(){
         DispatchQueue.global().async {
+            ////print("$$$$> Did start timeout")
             for _ in 1...200 { // 10s timeout
+                if (self.cancelled) {
+                    print("$$$$>Request cancelled")
+                    return
+                }
                 if ( self.rxData != nil ) {
                     self.completion(self.rxData!,nil)
                     return
                 }
-                Thread.sleep(forTimeInterval: 0.050)
+                Thread.sleep(forTimeInterval: Request.waitingTimeInterval)
             }
+            //print("$$$$> Did end with timeout")
             self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
         }
     }
@@ -97,6 +107,8 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     private var txBufferRest = 0 
     private var currentTxPacket = 0
     
+    private var cancelling: Bool = false
+    
     private static var minMajor = 1
     private static var minMinor = 9
     
@@ -116,6 +128,10 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     }
     
     func disconnect(){
+        
+        //cleanup
+        self.cancelRequests()
+        
         bleDevice = nil
         bleManager = nil
     }
@@ -127,7 +143,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?){         
         if let error = error{
             lastError = IoTizeBleError.ServiceDiscoveryFailed(peripheral: peripheral)
-            print("Error in discovering Services. Error : \(error.localizedDescription)")
+            //print("Error in discovering Services. Error : \(error.localizedDescription)")
             return
         }
         
@@ -137,7 +153,9 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             }
             
             if service.uuid == SPPoverLE_SERVICE_UUID{
+                //print("$$$> Did discover service")
                 peripheral.discoverCharacteristics([SPPoverLE_BUFFER_CHAR_UUID], for: service)
+                
             }
         }
     }
@@ -149,19 +167,21 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         }
         
         for characteristic in service.characteristics!{
+            
             if characteristic.uuid == SPPoverLE_BUFFER_CHAR_UUID{
                 notifyCharacteristic = characteristic
-                bleDevice.setNotifyValue(true, for: notifyCharacteristic)                
+                bleDevice?.setNotifyValue(true, for: notifyCharacteristic)
                 notifyCharacteristicResponseType = CBCharacteristicWriteType.withResponse
                 
                 if (characteristic.properties.rawValue & CBCharacteristicProperties.writeWithoutResponse.rawValue) != 0{
                     notifyCharacteristicResponseType = CBCharacteristicWriteType.withoutResponse
-                }            
+                }
+                //print("$$$$> Did discover characteristics")
             }
  
             // Get the Broadcom firmware version
             if characteristic.uuid == UUID_UPGRADE_APP_INFO{
-                bleDevice.readValue(for: characteristic)
+                bleDevice?.readValue(for: characteristic)
             }
         }
 
@@ -247,7 +267,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         
             if (currentRequest != nil){
                 currentRequest!.rxData = Request.byteArrayToHexString(rxBuffer, rxBufferLength)
-                print("##> ---------------------- received answer \(currentRequest!.txData)")
+                //print("##> ---------------------- received answer \(currentRequest!.txData)")
                 currentRequest = nil
             }
 
@@ -272,7 +292,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
 //        }
         let req = Request(txData: data,completion: completion)
         req.waitForResponse()
-        print("##> --------------------------- sen request \(data)")
+        //print("##> --------------------------- sen request \(data)")
         requestQueue.enqueue(req);
     }
 
@@ -327,6 +347,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             packet[i + 1] = txBuffer[offset + i]
         }
         if (notifyCharacteristic != nil && notifyCharacteristicResponseType != nil) {
+             //print("$$$$> Did write request")
              bleDevice.writeValue(Data(packet), for: notifyCharacteristic!, type: notifyCharacteristicResponseType!)
         }
        
@@ -341,16 +362,28 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         repeat {
 
             //if we are not waiting for a response and we have something to send
-            if ( (self.currentRequest == nil) && (!requestQueue.isEmpty)){
+            if ((!self.cancelling) && (self.currentRequest == nil) && (!requestQueue.isEmpty)){
                 let request = requestQueue.dequeue()!
                 self.rxBufferLength = 0
                 self.flagDataAvailable = false
                 self.currentRequest = request
-                print ("##> ------------------- Actual sent of \(request.txData)")
+                //print ("##> ------------------- Actual sent of \(request.txData)")
                 self.send_All_TX_Packets(Request.stringToHexArray(request.txData))
             }
             Thread.sleep(forTimeInterval: 0.01)
 
         } while true
+    }
+    
+    func cancelRequests() {
+        self.cancelling = true;
+        while (requestQueue.count > 0) {
+            guard let request = requestQueue.dequeue() else {
+                break
+            }
+            request.cancelled = true
+            Thread.sleep(forTimeInterval: Request.waitingTimeInterval * 1.5)
+        }
+        self.cancelling = false
     }
 }

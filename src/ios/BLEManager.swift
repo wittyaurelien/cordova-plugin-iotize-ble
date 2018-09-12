@@ -74,6 +74,8 @@ class BLEManager: NSObject, CBCentralManagerDelegate
 
         if (connectedDevice == nil){
             connectedDevice = BLEPeripheral()
+        } else {
+            connectedDevice!.disconnect()
         }
         //connectedDevice!.connect(device: device, manager: self)
         centralManager.connect(device, options: nil)
@@ -85,7 +87,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     func connectWithUUID( device: String, completion: @escaping Completion)
     {
         centralManager.stopScan()
-        
+    
         connectionChangeCompletion = completion
         for item : CBPeripheral in discoveredPeripherals{
             
@@ -107,6 +109,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     /* call the function cancelPeripheralConnection to disconnect
      */
     func disconnect( completion: @escaping Completion){
+        
         
         connectionChangeCompletion = completion
         //for the moment we just handle one device
@@ -194,7 +197,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             connectionChangeCompletion!(nil)
             connectionChangeCompletion = nil
             
-            print("--> Did Connect to \(String(describing: peripheral.name))")
+            print("\n$$$$>\n$$$$> Did Connect to \(String(describing: peripheral.name))")
             if (connectedDevice != nil){
                 connectedDevice!.connect(device: peripheral, manager: self)
             }
