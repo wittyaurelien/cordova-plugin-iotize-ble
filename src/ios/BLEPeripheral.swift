@@ -108,6 +108,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     private var currentTxPacket = 0
     
     private var cancelling: Bool = false
+    private var isReady: Bool = false
     
     private static var minMajor = 1
     private static var minMinor = 9
@@ -153,7 +154,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             }
             
             if service.uuid == SPPoverLE_SERVICE_UUID{
-                //print("$$$> Did discover service")
+                print("$$$> Did discover service")
                 peripheral.discoverCharacteristics([SPPoverLE_BUFFER_CHAR_UUID], for: service)
                 
             }
@@ -176,7 +177,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 if (characteristic.properties.rawValue & CBCharacteristicProperties.writeWithoutResponse.rawValue) != 0{
                     notifyCharacteristicResponseType = CBCharacteristicWriteType.withoutResponse
                 }
-                //print("$$$$> Did discover characteristics")
+                print("$$$$> Did discover characteristics")
             }
  
             // Get the Broadcom firmware version
@@ -188,6 +189,8 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         if ( notifyCharacteristic == nil ){
             lastError = IoTizeBleError.CharacteristicSPPNotFound(peripheral: peripheral)
         }
+        
+        self.isReady = true;
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?){
@@ -291,7 +294,6 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
 //            self.send_All_TX_Packets(Request.stringToHexArray(data))
 //        }
         let req = Request(txData: data,completion: completion)
-        req.waitForResponse()
         //print("##> --------------------------- sen request \(data)")
         requestQueue.enqueue(req);
     }
@@ -362,13 +364,14 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         repeat {
 
             //if we are not waiting for a response and we have something to send
-            if ((!self.cancelling) && (self.currentRequest == nil) && (!requestQueue.isEmpty)){
+            if (isReady && !self.cancelling && (self.currentRequest == nil) && !requestQueue.isEmpty){
                 let request = requestQueue.dequeue()!
                 self.rxBufferLength = 0
                 self.flagDataAvailable = false
                 self.currentRequest = request
-                //print ("##> ------------------- Actual sent of \(request.txData)")
+                print ("##> ------------------- Actual sent of \(request.txData)")
                 self.send_All_TX_Packets(Request.stringToHexArray(request.txData))
+                request.waitForResponse()
             }
             Thread.sleep(forTimeInterval: 0.01)
 
