@@ -194,13 +194,13 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral){
        
         if ( connectionChangeCompletion != nil){
-            connectionChangeCompletion!(nil)
-            connectionChangeCompletion = nil
             
-            print("\n$$$$>\n$$$$> Did Connect to \(String(describing: peripheral.name))")
             if (connectedDevice != nil){
                 connectedDevice!.connect(device: peripheral, manager: self)
             }
+            connectionChangeCompletion!(nil)
+            connectionChangeCompletion = nil
+            print("\n$$$$>\n$$$$> Did Connect to \(String(describing: peripheral.name))")
            
         }
     }
