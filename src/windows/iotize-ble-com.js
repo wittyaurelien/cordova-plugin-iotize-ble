@@ -138,15 +138,15 @@
             successCallback(success);            
 
         },
-        CheckAvailable: async function (successCallback, errorCallback) {
+        checkAvailable: async function (successCallback, errorCallback) {
 
             if (!checkProxy()){
-                errorCallback("Internal Error!");
+                errorCallback("iotize-ble Plugin is not available for this version of Windows! Minimal version required is 'Window10 Fall Creators Update, version 1709'");
                 return;
             }
             var success = false;
             try {
-                success = await iotizeProxy.CheckAvailable();
+                success = await iotizeProxy.checkAvailable();
             } catch (e) {
                 errorCallback(e);
             }
