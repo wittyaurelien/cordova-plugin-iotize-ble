@@ -138,6 +138,7 @@
             successCallback(success);            
 
         },
+        
         checkAvailable: async function (successCallback, errorCallback) {
 
             if (!checkProxy()){
@@ -147,13 +148,14 @@
             var success = false;
             try {
                 success = await iotizeProxy.checkAvailable();
+                successCallback(success);      
             } catch (e) {
                 errorCallback(e);
             }
          
-            successCallback(success);            
-
+                
         },
+        
         sendRequest: async function (successCallback, errorCallback, request) {
 
             if (!checkProxy()){
