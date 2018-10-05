@@ -8,6 +8,7 @@ using Windows.Storage.Streams;
 using IoTizeBLE.Utility;
 using System.Collections.ObjectModel;
 using Windows.Data.Json;
+using Windows.Devices.Radios;
 
 namespace IoTizeBLE
 {
@@ -66,8 +67,7 @@ namespace IoTizeBLE
             lastError = "";
             Context = GattSampleContext.Context;
 
-            //debugging log file
-            Log.CreateLog();
+          
         }
 
         ~BLEManager()
@@ -81,13 +81,39 @@ namespace IoTizeBLE
             return lastError;
         }
 
-        public bool checkAvailable()
+        public IAsyncOperation<bool> checkAvailable()
         {
+            Log.WriteLine("\n-->checkAvailable");
 
+            return Task.Run(() => DoCheckAvailable())
+               .AsAsyncOperation();
+        }
+
+        /// <summary>
+        /// Check the availablity of the BLE
+        /// </summary>
+        /// <returns></returns>
+        private async  Task<bool> DoCheckAvailable()
+        {
+            lastError = "";
+
+            //this device could not play a central role
             if (Context.IsCentralRoleSupported == false)
+            {
+                lastError = "This device could not be a Central BLE.";
                 return false;
+            }
             else
-                return true;
+            {
+                bool isOn = await Context.CheckBluetoothOn();
+                if ( isOn == false)
+                {
+                    lastError = "BLE is not activated.";
+                    return false;
+                }
+            }
+
+            return true;
 
         }
 
