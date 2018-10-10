@@ -24,6 +24,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     var discoveredPeripherals = [CBPeripheral]()  // table of discoveredPeripherals, initially it is empty
     var stateChangeCompletion: Completion?        //callback when the state is retreived
     var connectionChangeCompletion: Completion?   //callback when the connection state is retreived
+    var disconnectionErrorCompletion: Completion?   //callback to use when the device disconnected erroneously
     var discoveryCompletion: CompletionWithResponse?   //callback when the connection state is retreived
     
     private var connectedDevice: BLEPeripheral?
@@ -35,6 +36,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
         stateChangeCompletion = nil
         connectionChangeCompletion = nil
+        disconnectionErrorCompletion = nil
         connectedDevice = nil
         discoveryCompletion = nil
     }
@@ -55,7 +57,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
                 print("--> Start Scanning")
                 discoveryCompletion!("Ok", nil)
             } else {
-                print("#######> ---- Bluetooth not available yet")
+                //print("#######> ---- Bluetooth not available yet")
             }
         } else {
             // Fallback on earlier versions
@@ -89,11 +91,12 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         centralManager.stopScan()
     
         connectionChangeCompletion = completion
+        disconnectionErrorCompletion = completion
         for item : CBPeripheral in discoveredPeripherals{
             
             let name = item.identifier.uuidString
-            print("name: " + name)
-            print("device: " + device)
+            //print("name: " + name)
+            //print("device: " + device)
             if (name != nil) {
                 
                 if (name == device){
@@ -181,6 +184,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         //names are separated by \n
         for item : CBPeripheral in discoveredPeripherals{
             let name = item.name
+            //print("******* device name : \(name)")
             if ( (name != nil) && (name!.count != 0) ) {
                 listStr = name! + "\n" + listStr
             }
@@ -229,8 +233,17 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             connectionChangeCompletion = nil
             return
         }
-        connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
-        print("--> Error in disconnecting device. Error: \(String(describing: error?.localizedDescription))")
+//        connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
+
+        // This registers an error when disconnection happens spontaneously (e.g. peripheral out of range or powered off)
+        if (disconnectionErrorCompletion != nil) {
+            //print("disconnectionErrorCompletion occured")
+            disconnectionErrorCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
+            disconnectionErrorCompletion = nil
+        } else {
+            //print("disconnectionErrorCompletion didn't occur")
+        }
+        //print("--> Error in disconnecting device. Error: \(String(describing: error?.localizedDescription))")
         connectedDevice = nil
     }
 
@@ -253,5 +266,16 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     
     func isReady() -> Bool {
         return centralManager.state == .poweredOn
+    }
+    
+    func getNotifyCharacteristicResponseType() -> CBCharacteristicWriteType? {
+        if (self.connectedDevice == nil) {
+            return nil
+        }
+        return self.connectedDevice!.getNotifyCharacteristicResponseType()
+    }
+    
+    func isConnected() -> Bool {
+        return self.connectedDevice != nil
     }
 }
