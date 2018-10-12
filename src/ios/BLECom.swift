@@ -44,7 +44,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccess(command: CDVInvokedUrlCommand, result: String){
-        print("sendSuccess with String")
+        //print("sendSuccess with String")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -53,7 +53,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccess(command: CDVInvokedUrlCommand, result: DiscoveredDeviceType){
-        print("sendSuccess with DDT")
+        //print("sendSuccess with DDT")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result.ToJSON()
@@ -62,7 +62,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccessWithResponse(command: CDVInvokedUrlCommand, result: String){
-        print("sendSuccessWithResponse with string")
+        //print("sendSuccessWithResponse with string")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -72,7 +72,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccessWithResponse(command: CDVInvokedUrlCommand, result: DiscoveredDeviceType){
-        print("sendSuccessWithResponse with DDT")
+        //print("sendSuccessWithResponse with DDT")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result.ToJSON()
@@ -82,6 +82,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendError(command: CDVInvokedUrlCommand, result: String){
+        //print ("sendError called")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_ERROR,
             messageAs: result
@@ -147,6 +148,7 @@ struct IoTizeBleError: Error {
                     self.sendSuccessWithResponse(command: command, result: resultDiscoveredDevice)
                 } else if let resultDevice = result as? CBPeripheral {
                     self.sendSuccessWithResponse(command: command, result: CBPeripheralConverter.toDiscoveredDeviceType(device: resultDevice))
+                } else {
                 }
             }
         })
@@ -182,7 +184,7 @@ struct IoTizeBleError: Error {
                     self.sendError(command: command, result: error!.message)
                 }
                 else {
-                    print("##> Sending Connected Ok")
+                    //print("##> Sending Connected Ok")
                     self.sendSuccess(command: command, result: "Ok")
                 }
             }
@@ -211,7 +213,7 @@ struct IoTizeBleError: Error {
                     self.sendError(command: command, result: error!.message)
                 }
                 else {
-                    print("##> Sending Disconnected Ok")
+                    //print("##> Sending Disconnected Ok")
                     self.sendSuccess(command: command, result: "Ok")
                 }
             }
@@ -248,14 +250,14 @@ struct IoTizeBleError: Error {
                 }
                 else {
                     if let responseString = response as? String {
-                        print("##> Sending Request Ok " + responseString)
+                        //print("##> Sending Request Ok " + responseString)
                         self.sendSuccess(command: command, result: responseString)
                     }
                     else if let responseDiscoveredDevice = response as? DiscoveredDeviceType {
-                        print("##> Sending Request Ok, response as DiscoveredDeviceType")
+                        //print("##> Sending Request Ok, response as DiscoveredDeviceType")
                         self.sendSuccess(command: command, result: responseDiscoveredDevice)
                     } else if let responseDevice = response as? CBPeripheral {
-                        print("##> Sending Request OK, response as CBPeripheral")
+                        //print("##> Sending Request OK, response as CBPeripheral")
                         self.sendSuccess(command: command, result: CBPeripheralConverter.toDiscoveredDeviceType(device: responseDevice))
                     }
                 }
@@ -265,5 +267,21 @@ struct IoTizeBleError: Error {
     
     func isReady() -> Bool {
         return bleController.isReady()
+    }
+
+    @objc(getWriteType:)
+    func getWriteType(command: CDVInvokedUrlCommand) {
+    guard let responseType = self.bleController.getNotifyCharacteristicResponseType() else {
+        self.sendError(command: command, result: "could not get write type")
+        return
+        }
+        
+        let message: String = responseType == CBCharacteristicWriteType.withResponse ? "with response" : "without response"
+        self.sendSuccess(command: command, result: message)
+        }
+    
+    func observeDisconnection(command: CDVInvokedUrlCommand) {
+        DispatchQueue.main.async {
+        }
     }
 }

@@ -16,7 +16,7 @@ class Request: NSObject{
     let completion: CompletionWithResponse
     var rxData: String?
     
-    static let waitingTimeInterval: Double = 0.010
+    static let waitingTimeInterval: Double = 0.001
 
     init(txData: String, completion: @escaping CompletionWithResponse) {
         self.txData = txData
@@ -26,8 +26,8 @@ class Request: NSObject{
 
     public func waitForResponse(){
         DispatchQueue.global().async {
-            ////print("$$$$> Did start timeout")
-            for _ in 1...200 { // 10s timeout
+            print("$$$$> Did start timeout")
+            for _ in 1...5000 { // 5?s timeout
                 if (self.cancelled) {
                     print("$$$$>Request cancelled")
                     return
@@ -38,7 +38,7 @@ class Request: NSObject{
                 }
                 Thread.sleep(forTimeInterval: Request.waitingTimeInterval)
             }
-            //print("$$$$> Did end with timeout")
+            print("$$$$> Did end with timeout")
             self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
         }
     }
@@ -114,6 +114,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     private static var minMinor = 9
     
     private static var LEN_PACKET = 19         // MTU = 23 - 3 - 1 num packet
+    private let requestQueueManagementDelay = 0.002
     
     override init(){
         super.init()
@@ -144,7 +145,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?){         
         if let error = error{
             lastError = IoTizeBleError.ServiceDiscoveryFailed(peripheral: peripheral)
-            //print("Error in discovering Services. Error : \(error.localizedDescription)")
+            print("Error in discovering Services. Error : \(error.localizedDescription)")
             return
         }
         
@@ -218,6 +219,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         if error != nil {
             return
         }
+        //print ("didUpdateValueFor event triggered")
         
         let data = [UInt8](characteristic.value!)        
         //ble firmware version
@@ -270,7 +272,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         
             if (currentRequest != nil){
                 currentRequest!.rxData = Request.byteArrayToHexString(rxBuffer, rxBufferLength)
-                //print("##> ---------------------- received answer \(currentRequest!.txData)")
+                print("##> ---------------------- received answer \(currentRequest!.txData)")
                 currentRequest = nil
             }
 
@@ -294,7 +296,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
 //            self.send_All_TX_Packets(Request.stringToHexArray(data))
 //        }
         let req = Request(txData: data,completion: completion)
-        //print("##> --------------------------- sen request \(data)")
+        print("##> --------------------------- sen request \(data)")
         requestQueue.enqueue(req);
     }
 
@@ -350,6 +352,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         }
         if (notifyCharacteristic != nil && notifyCharacteristicResponseType != nil) {
              //print("$$$$> Did write request")
+            //print ("CharacteristicResponseType: \(notifyCharacteristicResponseType == CBCharacteristicWriteType.withResponse ? "withResponse": "withoutResponse")")
              bleDevice.writeValue(Data(packet), for: notifyCharacteristic!, type: notifyCharacteristicResponseType!)
         }
        
@@ -373,7 +376,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 self.send_All_TX_Packets(Request.stringToHexArray(request.txData))
                 request.waitForResponse()
             }
-            Thread.sleep(forTimeInterval: 0.01)
+            Thread.sleep(forTimeInterval: self.requestQueueManagementDelay)
 
         } while true
     }
@@ -388,5 +391,9 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             Thread.sleep(forTimeInterval: Request.waitingTimeInterval * 1.5)
         }
         self.cancelling = false
+    }
+    
+    func getNotifyCharacteristicResponseType() -> CBCharacteristicWriteType? {
+        return self.notifyCharacteristicResponseType
     }
 }
