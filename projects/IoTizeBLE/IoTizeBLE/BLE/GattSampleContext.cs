@@ -17,6 +17,7 @@ using System.Threading;
 using Windows.Storage.Streams;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using IoTizeBLE.Utility;
+using Windows.Devices.Radios;
 
 namespace IoTizeBLE
 {
@@ -49,7 +50,7 @@ namespace IoTizeBLE
         /// Device dev node property to get device address
         /// </summary>
         private const string BluetoothDeviceAddress = "System.DeviceInterface.Bluetooth.DeviceAddress";
-      
+
 
         /// <summary>
         /// Gets or sets the list of available bluetooth devices
@@ -219,6 +220,33 @@ namespace IoTizeBLE
         }
 
         /// <summary>
+        /// Source for <see cref="IsCentralRoleSupported"/>
+        /// </summary>
+        private bool isBluetoothOn = true;
+
+        /// <summary>
+        /// Gets a value indicating whether central role is supported by this device
+        /// </summary>
+        public bool IsBluetoothOn
+        {
+            get
+            {
+                return isBluetoothOn;
+            }
+
+            private set
+            {
+                if (isBluetoothOn != value)
+                {
+                    isBluetoothOn = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("IsBluetoothOn"));
+                }
+            }
+        }
+
+       
+
+        /// <summary>
         /// Prevents a default instance of the <see cref="GattSampleContext" /> class from being created.
         /// </summary>
         private GattSampleContext()
@@ -231,21 +259,26 @@ namespace IoTizeBLE
         /// </summary>
         private async void Init()
         {
-            Windows.Devices.Bluetooth.BluetoothAdapter adapter = await Windows.Devices.Bluetooth.BluetoothAdapter.GetDefaultAsync();
+            Log.CreateLog();
           
-            if (adapter ==  null)
-            {
-                //MessageDialog msg = new MessageDialog("Error getting access to Bluetooth adapter. Do you have a have bluetooth enabled?", "Error");
-                //await msg.ShowAsync();
+            Windows.Devices.Bluetooth.BluetoothAdapter adapter = await Windows.Devices.Bluetooth.BluetoothAdapter.GetDefaultAsync();           
 
+            //there is no bluetooth for this device
+            if ( adapter ==  null)
+            {
                 IsPeripheralRoleSupported = false;
                 IsCentralRoleSupported = false;
             }
             else
-            { 
+            {
                 IsPeripheralRoleSupported = adapter.IsPeripheralRoleSupported;
                 IsCentralRoleSupported = adapter.IsCentralRoleSupported;
             }
+
+
+            //check that bluetooth is on or off
+            await CheckBluetoothOn();
+
 
             // Start the dev node watcher
             string[] requestedProperties =
@@ -269,7 +302,29 @@ namespace IoTizeBLE
             return;
         }
 
+        public async Task<bool> CheckBluetoothOn()
+        {
+            var result = await Radio.RequestAccessAsync();
+            if (result == RadioAccessStatus.Allowed)
+            {
 
+                var bluetooth = (await Radio.GetRadiosAsync()).FirstOrDefault(radio => radio.Kind == RadioKind.Bluetooth);
+                if (bluetooth != null && bluetooth.State != RadioState.On)
+                {
+                    IsBluetoothOn = false;
+
+                }
+                else
+                    IsBluetoothOn = true;
+
+            }
+            else
+            {
+                //we do not have access to bluetooth, lets assume that blutooth is on
+                IsBluetoothOn = true;
+            }
+            return IsBluetoothOn;
+        }
 
         private async void DevNodeWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
@@ -408,8 +463,9 @@ namespace IoTizeBLE
         /// </summary>
         public void StartEnumeration()
         {
+
             // Additional properties we would like about the device.
-            string[] requestedProperties = 
+            string[] requestedProperties =
                 {
                     "System.Devices.Aep.Category",
                     "System.Devices.Aep.ContainerId",
@@ -437,6 +493,7 @@ namespace IoTizeBLE
             deviceWatcher.Stopped += DeviceWatcher_Stopped;
 
             advertisementWatcher = new BluetoothLEAdvertisementWatcher();
+            advertisementWatcher.ScanningMode = BluetoothLEScanningMode.Active;
             advertisementWatcher.Received += AdvertisementWatcher_Received;
 
             BluetoothLEDevices.Clear();
@@ -461,7 +518,7 @@ namespace IoTizeBLE
                 deviceWatcher.EnumerationCompleted -= DeviceWatcher_EnumerationCompleted;
                 deviceWatcher.Stopped -= DeviceWatcher_Stopped;
 
-                advertisementWatcher.Received += AdvertisementWatcher_Received;
+                advertisementWatcher.Received -= AdvertisementWatcher_Received;
 
                 // Stop the watchers
                 deviceWatcher.Stop();
@@ -682,14 +739,15 @@ namespace IoTizeBLE
         {
            
             ObservableBluetoothLEDevice dev = new ObservableBluetoothLEDevice(deviceInfo);
-           
+
             // Let's make it connectable by default, we have error handles in case it doesn't work
             bool shouldDisplay =
                 ((dev.DeviceInfo.Properties.Keys.Contains("System.Devices.Aep.Bluetooth.Le.IsConnectable") &&
                     (bool)dev.DeviceInfo.Properties["System.Devices.Aep.Bluetooth.Le.IsConnectable"])) ||
                 ((dev.DeviceInfo.Properties.Keys.Contains("System.Devices.Aep.IsConnected") &&
                     (bool)dev.DeviceInfo.Properties["System.Devices.Aep.IsConnected"]));
-                
+                            
+
             if (shouldDisplay)
             {
                 // Need to lock as another DeviceWatcher might be modifying BluetoothLEDevices 

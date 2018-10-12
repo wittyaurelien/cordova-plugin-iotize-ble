@@ -128,6 +128,9 @@
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "C:\Developpement\Cordova\device-com-ble.cordova\projects\IoTizeBLE\IoTizeBLE\bin\x64\Release\IoTizeBLE.winmd"  "C:\Developpement\Cordova\test.ble\platforms\windows\build\windows\Debug\x64\win10\AppX\ioTizeBLE.winmd"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

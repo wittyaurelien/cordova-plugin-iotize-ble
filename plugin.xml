@@ -6,7 +6,7 @@
 
     <name>iotize-ble</name>
     <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
-    <license>Apache 2.0</license>
+    <license>MIT</license>
     <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
 
     <js-module src="www/iotize-ble.js" name="iotizeBLE">
@@ -25,13 +25,9 @@
     <source-file src="src/android/src/JSONBuilder.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/ArgsHelper.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/PluginResponse.java" target-dir="src/com/iotize/plugin"/>
-    <!-- <lib-file src="src/android/libs/iotize-device-api.jar"/>
-    <lib-file src="src/android/libs/iotize-device-com-ble.jar"/> -->
     <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
     <resource-file src="src/android/libs/iotize-device-api-release.aar" target="../../libs/iotize-device-api.aar" />
     <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" />
-
-
       <config-file target="AndroidManifest.xml" parent="/manifest">
           <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
           <uses-permission android:name="android.permission.BLUETOOTH"/>
@@ -46,6 +42,7 @@
     <framework src="src/windows/ioTizeBLE.winmd" custom="true"/>
     <config-file target="package.appxmanifest" parent="/Package/Capabilities">
       <DeviceCapability Name="bluetooth"/>
+      <DeviceCapability Name="radios"/>
     </config-file>
   </platform>
   

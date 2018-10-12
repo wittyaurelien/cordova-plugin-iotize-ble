@@ -14,7 +14,7 @@ namespace IoTizeBLE.Utility
 
         public async static void CreateLog()
         {
-           
+            return;
             // Create sample file; replace if exists.
             Windows.Storage.StorageFolder storageFolder =
                 Windows.Storage.ApplicationData.Current.LocalFolder;
@@ -35,7 +35,7 @@ namespace IoTizeBLE.Utility
 
         public static   void WriteLine(String line , params object [] list)
         {
-           
+            return;
             if (Log.LogFile == null)
             {
                 Log.CreateLog();

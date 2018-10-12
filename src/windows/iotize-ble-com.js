@@ -50,10 +50,7 @@
             discoveryCallback = successCallback;
 
             var res = iotizeProxy.startScan(handleDiscoveryCallback);
-            if (res == true) {
-                handleDiscoveryCallback("Ok");
-            }
-            else {
+            if (res != true) {
                 errorCallback(iotizeProxy.getLastError());
             }
         },
@@ -138,22 +135,24 @@
             successCallback(success);            
 
         },
-        CheckAvailable: async function (successCallback, errorCallback) {
+        
+        checkAvailable: async function (successCallback, errorCallback) {
 
             if (!checkProxy()){
-                errorCallback("Internal Error!");
+                errorCallback("iotize-ble Plugin is not available for this version of Windows! Minimal version required is 'Window10 Fall Creators Update, version 1709'");
                 return;
             }
             var success = false;
             try {
-                success = await iotizeProxy.CheckAvailable();
+                success = await iotizeProxy.checkAvailable();
+                successCallback(success);      
             } catch (e) {
                 errorCallback(e);
             }
          
-            successCallback(success);            
-
+                
         },
+        
         sendRequest: async function (successCallback, errorCallback, request) {
 
             if (!checkProxy()){
