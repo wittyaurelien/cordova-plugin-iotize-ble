@@ -140,15 +140,50 @@ namespace IoTizeBLE
         {
             if (e.PropertyName == "DeviceList")
             {
-                if ( (_discoveryCallback != null) && (Context.BluetoothLEDevices.Last() != null) )
+                if ( (_discoveryCallback != null)  )
                 {
+                    foreach (var device  in Context.BluetoothLEDevices)
+                    {
+                        if (device.AppNotified == false)
+                        {
+                            device.AppNotified = true;
+                            DeviceInfo info = new DeviceInfo();
+                            info.name = device.Name;
+                            info.address = device.BluetoothAddressAsString;
+                            info.rssi = device.RSSI;
 
-                    Log.WriteLine("~~~Found device" + Context.BluetoothLEDevices.Last().Name);
-                    DeviceInfo info = new DeviceInfo();
-                    info.name = Context.BluetoothLEDevices.Last().Name;
-                    info.address = Context.BluetoothLEDevices.Last().BluetoothAddressAsString;
-                    info.rssi = Context.BluetoothLEDevices.Last().RSSI;
-                    _discoveryCallback(info.ToJsonObject().ToString());
+                            Log.WriteLine("~~~ Found device" + info.name);
+
+                            //For the moment Taps are filtered with their name 
+                            //ending with _XXXXX
+                            bool checkIotizeDevice = true;
+                            String nameOfDevice = info.name;
+                            int index = nameOfDevice.LastIndexOf('_');
+                            if (index != -1)
+                            {
+                                String numSerie = nameOfDevice.Substring(index);
+
+                                if (numSerie.Length != 6)
+                                {
+                                    checkIotizeDevice = false;
+                                    Log.WriteLine("~~~ not an iotize device: " + numSerie);
+                                }
+                            }
+                            else
+                            {
+                                checkIotizeDevice = false;
+                                Log.WriteLine("~~~ not an iotize device: " + nameOfDevice);
+                            }
+
+                            if (checkIotizeDevice)
+                            {
+                                Log.WriteLine("~~~ call discovery for : " + info.name);
+                                _discoveryCallback(info.ToJsonObject().ToString());
+                            }
+
+                        }
+                    }
+                   
                 }
             }
         }
@@ -408,7 +443,10 @@ namespace IoTizeBLE
             bool isanswered = await req.IsAnswered();
 
             if (!isanswered)
+            {
+                Log.WriteLine("~~~not answered : " + req.index);
                 return (lastError = "Error: Did not received an answer");
+            }
 
             IBuffer myresponse = GattConvert.ToIBufferFromArray(req.GetResponse());
             string strresponse = GattConvert.ToHexString(myresponse);

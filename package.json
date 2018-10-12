@@ -10,10 +10,6 @@
       "windows"
     ]
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https:\\git@bitbucket.org:iotize-solutions/device-com-ble.cordova.git"
-  },
   "keywords": [
     "cordova",
     "bluetooth",
@@ -27,9 +23,6 @@
     "cordova-android"
   ],
   "author": "IoTize SAS <support@iotize.com>",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/iotize-solutions/iotize-device-shell/issues"
-  },
+  "license": "MIT",
   "homepage": "#readme"
 }

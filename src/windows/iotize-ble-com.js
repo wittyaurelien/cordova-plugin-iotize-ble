@@ -50,10 +50,7 @@
             discoveryCallback = successCallback;
 
             var res = iotizeProxy.startScan(handleDiscoveryCallback);
-            if (res == true) {
-                handleDiscoveryCallback("Ok");
-            }
-            else {
+            if (res != true) {
                 errorCallback(iotizeProxy.getLastError());
             }
         },

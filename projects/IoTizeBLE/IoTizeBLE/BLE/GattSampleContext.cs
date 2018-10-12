@@ -50,7 +50,7 @@ namespace IoTizeBLE
         /// Device dev node property to get device address
         /// </summary>
         private const string BluetoothDeviceAddress = "System.DeviceInterface.Bluetooth.DeviceAddress";
-      
+
 
         /// <summary>
         /// Gets or sets the list of available bluetooth devices
@@ -463,8 +463,9 @@ namespace IoTizeBLE
         /// </summary>
         public void StartEnumeration()
         {
+
             // Additional properties we would like about the device.
-            string[] requestedProperties = 
+            string[] requestedProperties =
                 {
                     "System.Devices.Aep.Category",
                     "System.Devices.Aep.ContainerId",
@@ -492,6 +493,7 @@ namespace IoTizeBLE
             deviceWatcher.Stopped += DeviceWatcher_Stopped;
 
             advertisementWatcher = new BluetoothLEAdvertisementWatcher();
+            advertisementWatcher.ScanningMode = BluetoothLEScanningMode.Active;
             advertisementWatcher.Received += AdvertisementWatcher_Received;
 
             BluetoothLEDevices.Clear();
@@ -516,7 +518,7 @@ namespace IoTizeBLE
                 deviceWatcher.EnumerationCompleted -= DeviceWatcher_EnumerationCompleted;
                 deviceWatcher.Stopped -= DeviceWatcher_Stopped;
 
-                advertisementWatcher.Received += AdvertisementWatcher_Received;
+                advertisementWatcher.Received -= AdvertisementWatcher_Received;
 
                 // Stop the watchers
                 deviceWatcher.Stop();
@@ -737,14 +739,15 @@ namespace IoTizeBLE
         {
            
             ObservableBluetoothLEDevice dev = new ObservableBluetoothLEDevice(deviceInfo);
-           
+
             // Let's make it connectable by default, we have error handles in case it doesn't work
             bool shouldDisplay =
                 ((dev.DeviceInfo.Properties.Keys.Contains("System.Devices.Aep.Bluetooth.Le.IsConnectable") &&
                     (bool)dev.DeviceInfo.Properties["System.Devices.Aep.Bluetooth.Le.IsConnectable"])) ||
                 ((dev.DeviceInfo.Properties.Keys.Contains("System.Devices.Aep.IsConnected") &&
                     (bool)dev.DeviceInfo.Properties["System.Devices.Aep.IsConnected"]));
-                
+                            
+
             if (shouldDisplay)
             {
                 // Need to lock as another DeviceWatcher might be modifying BluetoothLEDevices 

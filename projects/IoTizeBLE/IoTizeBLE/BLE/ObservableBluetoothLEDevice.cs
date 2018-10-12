@@ -68,6 +68,8 @@ namespace IoTizeBLE
             }
         }
 
+        public bool AppNotified = false;
+
         /// <summary>
         /// Source for <see cref="BluetoothLEDevice"/>
         /// </summary>
@@ -381,9 +383,10 @@ namespace IoTizeBLE
         private const string SPPOverLEGUID = "6C7B16C2-2A5B-8C9F-CF42-D31425470E7B";
         private const string SPPoverLE_BUFFER_CHAR_UUID = "cc5c5491-b3be-9287-cb42-f7a6a29a50d5";
         private GattCharacteristic SPPOverLECharacteristic = null;
+        private ObservableGattCharacteristics SPPOverLECharacteristicObs = null;
 
         //we enqueue up to 100 commands
-        private Queue<Request> RequestedCommands = new Queue<Request>();
+        private Queue<Request> RequestedCommands = null;
         private Request CurrentRequest;
 
         /// <summary>
@@ -405,13 +408,19 @@ namespace IoTizeBLE
 
             IsPaired = DeviceInfo.Pairing.IsPaired;
 
+            //update RSSI
+            if (DeviceInfo.Properties.ContainsKey("System.Devices.Aep.SignalStrength") && 
+                DeviceInfo.Properties["System.Devices.Aep.SignalStrength"] != null)
+            {
+                RSSI = (int)DeviceInfo.Properties["System.Devices.Aep.SignalStrength"];
+            }
 
-            this.PropertyChanged += ObservableBluetoothLEDevice_PropertyChanged;
+            //this.PropertyChanged += ObservableBluetoothLEDevice_PropertyChanged;
         }
 
         ~ObservableBluetoothLEDevice()
         {
-            this.PropertyChanged -= ObservableBluetoothLEDevice_PropertyChanged;
+            //this.PropertyChanged -= ObservableBluetoothLEDevice_PropertyChanged;
             if (BluetoothLEDevice != null)
             {
 
@@ -435,6 +444,7 @@ namespace IoTizeBLE
 
         }
 
+        //not used at the moment, we do not update RSSI for the moment
         private void ObservableBluetoothLEDevice_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "DeviceInfo")
@@ -470,6 +480,7 @@ namespace IoTizeBLE
             //Start checking requests
             Task.Run(() => ManageRequests()).AsAsyncAction();
 
+            RequestedCommands = new Queue<Request>();
             RequestedCommands.Clear();
             CurrentRequest = null;
 
@@ -589,10 +600,20 @@ namespace IoTizeBLE
         public async Task<bool> Disconnect()
         {
             IsConnected = false;
-            
-            RequestedCommands.Clear();
-            CurrentRequest = null;
 
+            RequestedCommands.Clear();
+            RequestedCommands = null;
+
+            await Task.Delay(100);
+
+            receivedResponse = null;
+            rxBufferLength = 0;
+            for (int i = 0; i < rxBuffer.Length; i++)
+            {
+                rxBuffer[i] = 0;
+            }
+            CurrentRequest = null;
+                       
             await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunTaskAsync(async () =>
             {
                 try
@@ -607,6 +628,8 @@ namespace IoTizeBLE
                         IsConnected = false;
                         IsPaired = false;
                         Name = "";
+                        Services.Clear();
+                        SPPOverLECharacteristicObs.ResponseEvent -= Item_ResponseEvent;
                         Services.Clear();
                         SPPOverLECharacteristic = null;
                         ServiceCount = 0;
@@ -758,6 +781,7 @@ namespace IoTizeBLE
                         characteresticsStr += "charc:" + item.UUID + "-";
                         if (item.UUID.ToUpper() == SPPoverLE_BUFFER_CHAR_UUID.ToUpper())
                         {
+                            SPPOverLECharacteristicObs = item;
                             item.ResponseEvent += Item_ResponseEvent;
                             SPPOverLECharacteristic = item.Characteristic;
                         }
@@ -786,20 +810,22 @@ namespace IoTizeBLE
         private async Task ManageRequests()
         {
             
-            while (true)
+            while (RequestedCommands != null)
             {
                 while (IsConnected && (RequestedCommands.Count != 0))
                 {
                     Request current = RequestedCommands.Dequeue();
 
-                    Log.WriteLine("~~~~ Manage request :" + current.index + " in " + Environment.CurrentManagedThreadId.ToString());
+                    Log.WriteLine("~~~~ Manage request :" + current.index + " in " + RequestedCommands.Count.ToString());
 
                     await ActualSendRequest(current);
                 }
 
-                await Task.Delay(50);
+                await Task.Delay(20);
 
             }
+
+            Log.WriteLine("~~~~ Leaving Manage request ");
         }
 
         public Request RegisterRequest(byte[] request)
@@ -884,14 +910,15 @@ namespace IoTizeBLE
             if (SPPOverLECharacteristic == null)
             {
                 setUpSPP();
+                await SPPOverLECharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
+
             }
             if (SPPOverLECharacteristic == null)
             {
                 throw new InvalidOperationException("Invalid BLE Characteristics");                
             }
 
-            await SPPOverLECharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-                            GattClientCharacteristicConfigurationDescriptorValue.Notify);
 
             // Check if last packet
             if (num > 0)
@@ -933,7 +960,7 @@ namespace IoTizeBLE
         private void Item_ResponseEvent(object sender, ReceivedEventArgs e)
         {
             rxBufferLength += (e.Response.Length - 1);
-            
+            Log.WriteLine("~~~ rxBufferLength: " + rxBufferLength.ToString());
 
             if (rxBufferLength > ObservableBluetoothLEDevice.bufferLength)
             {
@@ -978,7 +1005,7 @@ namespace IoTizeBLE
                 {
                     receivedResponse[i] = rxBuffer[i];
                 }
-
+               
                 CurrentRequest.SetResponse(receivedResponse);
                 Log.WriteLine("~~~ get: "+ CurrentRequest.index + " data=[" + BitConverter.ToString(e.Response, 0, e.Response.Length) + "]");
 

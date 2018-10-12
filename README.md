@@ -1,18 +1,18 @@
-# Bluetooth Low Energy (BLE) communication with IoTize modules Plugin for Apache Cordova
+# Bluetooth Low Energy (BLE) for IoTize devices Plugin for Apache Cordova
 
-This plugin enables communication between a phone and a BLE enabled IOTIZE module.
+This plugin enables communication between a mobile and a BLE enabled IOTIZE device.
 
 The plugin provides a simple [JavaScript API](#api) for iOS, Android and Windows.
 
- * Scan for IoTize peripherals
- * Connect to an IoTize peripheral
- * Send a Request and returns the reponse from the peripheral
+ * Scan for ble iotize devices
+ * Connect to a device
+ * Send a Request and returns the reponse from the device
 
-See the [IoTize Monitoring App](https://github.com/don/cordova-plugin-ble-central/tree/master/examples) for ideas on how this plugin can be used.
 
 ## Supported Platforms
 
 * iOS
+* Android ()
 * Windows (10) 
 
 # Installing
@@ -27,26 +27,49 @@ See the [IoTize Monitoring App](https://github.com/don/cordova-plugin-ble-centra
 
 ## Methods
 
-- [iotize-ble.startScan](#startscan)
-- [iotize-ble.stopScan](#stopscan)
+- [iotize-ble.checkAvailable](#checkAvailable)
+- [iotize-ble.startScan](#startScan)
+- [iotize-ble.stopScan](#stopScan)
 - [iotize-ble.connect](#connect)
-- [iotize-ble.disconnect](#disconnect)
+- [iotize-ble.disConnect](#disConnect)
+- [iotize-ble.isConnected](#isConnected)
 - [iotize-ble.send](#send)
+- [iotize-ble.getLastError](#getLastError)
+
+## checkAvailable
+
+Check availability of BLE.
+
+    iotize-ble.checkAvailable();
+
+### Description
+
+Function `checkAvailable` returns true or false upon the availability of BLE on device.  
+
+For Android, BLE is available from version 4.3.  
+iOS platform has had support for BLE since iPhone 4s and iOs 5. 
+For Windows, BLE GATT and GAP roles have been introduced in Windows 10 version 1703.
 
 ## startScan
 
-Scan and discover IoTize BLE peripherals.
+Start scanning for Iotize BLE devices.
 
     iotize-ble.startScan(success, failure);
 
 ### Description
 
-Function `startScan` scans for IoTize BLE devices.  Scanning will continue until `stopScan` is called.
+Function `startScan` scans for IoTize BLE devices. Scanning will continue until `stopScan` is called or a connection is established. The success callback is called each time a new peripheral is discovered. 
+
+Advertising information is different depending on your platform. For Android and Windows, the device is identified with its MAC address and for iOS the device is identified with a unique UUID. The success callback is called at each discovery with returning an object containing the following information:
+- name: name of the peripheral.
+- address: UUID or MAC address of the peripheral.
+- rssi: the threshold RSSI in dBm.          
+ 
 
 ### Parameters
 
-- __success__: Success callback function that is invoked upon a successfull start of scanning with "Ok" as result, then upon each discovery called with the name of the device as result.
-- __failure__: Error callback function, invoked when error occurs. [optional]
+- __success__: Success callback function that is invoked upon each discovery. The callback is called with the device information as parameter.
+- __failure__: Error callback function, invoked when error occurs. The error string is passed as a parameter. 
 
 
 ## stopScan
@@ -61,8 +84,8 @@ Function `stopScan` stops scanning for BLE devices.
 
 ### Parameters
 
-- __success__: Success callback function, invoked when scanning is stopped. [optional]
-- __failure__: Error callback function, invoked when error occurs. [optional]
+- __success__: Success callback function, invoked when scanning is stopped. 
+- __failure__: Error callback function, invoked when error occurs.
 
 ### Quick Example
 
@@ -75,7 +98,7 @@ Function `stopScan` stops scanning for BLE devices.
             function() { console.log("Scan complete"); },
             function() { console.log("stopScan failed"); }
         );
-    }, 5000);
+    }, 2000);
     
 ## connect
 
@@ -85,9 +108,9 @@ Connect to a peripheral.
 
 ### Description
 
-Function `connect` connects to a BLE peripheral. The callback is long running. The connect callback will be called when the connection is successful. 
+Function `connect` connects to an iotize BLE peripheral. The connectCallback callback will be called when the connection is successful. 
 
-The connectionErrorCallback callback is called if the connection fails, or later if the peripheral disconnects. The connectionErrorCallback callback is only called when the peripheral initates the disconnection. The disconnect callback is not called when the application calls (#disconnect). The disconnect callback is how your app knows the peripheral inintiated a disconnect.
+The connectionErrorCallback callback is called if the connection fails, or later if the peripheral disconnects for any reason. The connectionErrorCallback callback is only called when the peripheral initates the disconnection. 
 
 ### Scanning before connecting
 
@@ -95,25 +118,25 @@ Devices should be scanned before connection. Please note that for this version o
 
 ### Parameters
 
-- __device_id__: name of the peripheral
+- __device_id__: Mac address or UUID of the ble device.
 - __connectCallback__: Connect callback function that is invoked when the connection is successful.
-- __disconnectCallback__: Disconnect callback function, invoked when the peripheral disconnects or an error occurs.
+- __connectionErrorCallback__: Disconnect callback function, invoked when the peripheral disconnects or an error occurs.
 
 ## disconnect
 
 Disconnect.
 
-    iotize-ble.disconnect(device_id, [success], [failure]);
+    iotize-ble.disConnect(device_id, success, failure);
 
 ### Description
 
-Function `disconnect` disconnects the selected device.
+Function `disConnect` disconnects the selected device.
 
 ### Parameters
 
-- __device_id__: name of the peripheral
-- __success__: Success callback function that is invoked when the connection is successful. [optional]
-- __failure__: Error callback function, invoked when error occurs. [optional]
+- __device_id__: Mac address or UUID of the device.
+- __success__: Success callback function that is invoked when the connection is successful.
+- __failure__: Error callback function, invoked when error occurs.
 
 ## send
 
@@ -124,7 +147,7 @@ sends a frame of byte to ioTize device using SPP characteristic.
 ### Parameters
 - __device_id__: name address of the peripheral
 - __data__: binary data as a string ex:"A2CA000007010003FFFF0002"
-- __success__: Success callback function that is invoked when the connection is successful. The result parameter is the response as a string where bytes are '-' separated ex: "45-49-6F-54-7A-50-72-30-30-34-31-30-30-30-30-31-30-39-42-90-00"
+- __success__: Success callback function that is invoked when the connection is successful. The result parameter is the response as a string where bytes are '-' separated ex: "45496F547A50723030343130303030313039429000"
 - __failure__: Error callback function, invoked when error occurs. [optional]
 
 ### Quick Example

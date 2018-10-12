@@ -67,9 +67,9 @@ namespace IoTizeBLE.Utility
         public async Task<bool> IsAnswered()
         {
             int counter = 0;
-            while ((counter < 1000) && (State != RequestState._responded))
+            while ((counter < 10000) && (State != RequestState._responded))
             {
-                await Task.Delay(60);
+                await Task.Delay(20);
 
                 if (State == RequestState._responded)
                 {
