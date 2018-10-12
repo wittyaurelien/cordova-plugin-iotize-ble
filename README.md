@@ -20,7 +20,7 @@ The plugin provides a simple [JavaScript API](#api) for iOS, Android and Windows
 ### Cordova
 
     $ cordova plugin add cordova-plugin-iotize-ble
-    $ ionic cordova plugin add C:/Developpement/cordova/cordova-plugin-iotize/cordova-plugin-iotize-ble
+    $ ionic cordova plugin add cordova-plugin-iotize-ble
     for iOS since the plugin is in swift language, before using iotize-ble plugin , cordova-plugin-add-swift-support:https://github.com/akofman/cordova-plugin-add-swift-support should be installed. 
 
 # API
@@ -34,13 +34,12 @@ The plugin provides a simple [JavaScript API](#api) for iOS, Android and Windows
 - [iotize-ble.disConnect](#disConnect)
 - [iotize-ble.isConnected](#isConnected)
 - [iotize-ble.send](#send)
-- [iotize-ble.getLastError](#getLastError)
 
 ## checkAvailable
 
 Check availability of BLE.
 
-    iotize-ble.checkAvailable();
+    iotize-ble.checkAvailable(success, failure);
 
 ### Description
 
@@ -145,10 +144,10 @@ sends a frame of byte to ioTize device using SPP characteristic.
     iotize-ble.send(device_id, __data__, success, failure);
 
 ### Parameters
-- __device_id__: name address of the peripheral
+- __device_id__: Mac address or UUID of the device.
 - __data__: binary data as a string ex:"A2CA000007010003FFFF0002"
-- __success__: Success callback function that is invoked when the connection is successful. The result parameter is the response as a string where bytes are '-' separated ex: "45496F547A50723030343130303030313039429000"
-- __failure__: Error callback function, invoked when error occurs. [optional]
+- __success__: Success callback function that is invoked when the connection is successful. The result parameter is the response as a string :"45496F547A50723030343130303030313039429000"
+- __failure__: Error callback function, invoked when error occurs. 
 
 ### Quick Example
 
@@ -168,14 +167,11 @@ sends a frame of byte to ioTize device using SPP characteristic.
 
 # Testing the Plugin
 
-The plugin could be tested using ionic framework.
-
-TODO
 
 # License
 
-Apache 2.0
+MIT
 
 # Feedback
 
-Try the code. If you find an problem or missing feature, file an issue in Jira .
+Try the code. If you find an problem or missing feature pluease contact Iotize support team .
