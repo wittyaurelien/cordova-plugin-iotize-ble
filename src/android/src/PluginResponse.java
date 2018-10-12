@@ -54,8 +54,7 @@ public class PluginResponse {
     }
 
     public void success(boolean isConnected) {
-        this.callbackContext.success(isConnected ? "true": "false");
-    }
+        this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, isConnected));    }
 
     public void success() {
         this.callbackContext.success();
