@@ -288,9 +288,4 @@ struct IoTizeBleError: Error {
         let message: String = responseType == CBCharacteristicWriteType.withResponse ? "with response" : "without response"
         self.sendSuccess(command: command, result: message)
     }
-    
-    func observeDisconnection(command: CDVInvokedUrlCommand) {
-        DispatchQueue.main.async {
-        }
-    }
 }
