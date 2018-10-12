@@ -4,7 +4,7 @@
     id="cordova-plugin-iotize-ble"
     version="1.0.3">
 
-    <name>iotize-ble</name>
+    <name>cordova-plugin-iotize-ble</name>
     <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
     <license>MIT</license>
     <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
