@@ -21,7 +21,10 @@ struct DiscoveredDeviceType : Codable{
     }
     
     func ToJSON() -> [AnyHashable: Any] {
-        return ["name": name, "address": address]
+        if self.rssi == nil {
+            return ["name": name, "address": address]
+        }
+        return ["name": name, "address": address, "rssi": rssi]
     }
     
     func toJSONString() throws -> String {
@@ -38,9 +41,10 @@ import Foundation
 
 class CBPeripheralConverter {
     
-    public static func toDiscoveredDeviceType(device: CBPeripheral) -> DiscoveredDeviceType {
-        return DiscoveredDeviceType(newName: device.name!, newAddress: device.identifier.uuidString as String, newRssi: nil)
+    public static func toDiscoveredDeviceType(device: CBPeripheral, rssi: Int? = nil) -> DiscoveredDeviceType {
+        return DiscoveredDeviceType(newName: device.name!, newAddress: device.identifier.uuidString as String, newRssi: rssi)
     }
+    
     public static func toJSONObject(device: CBPeripheral) -> [AnyHashable: Any] {
         return toDiscoveredDeviceType(device: device).ToJSON()
     }
