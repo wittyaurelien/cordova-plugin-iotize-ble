@@ -17,13 +17,13 @@ class Request: NSObject{
     var rxData: String?
     
     static let waitingTimeInterval: Double = 0.001
-
+    
     init(txData: String, completion: @escaping CompletionWithResponse) {
         self.txData = txData
         self.completion = completion
         self.cancelled = false
     }
-
+    
     public func waitForResponse(){
         DispatchQueue.global().async {
             print("$$$$> Did start timeout")
@@ -42,8 +42,8 @@ class Request: NSObject{
             self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
         }
     }
-
-     public static func stringToHexArray(_ string: String) -> [UInt8]{
+    
+    public static func stringToHexArray(_ string: String) -> [UInt8]{
         var stest = string.map { String($0) }
         var finalArray = [UInt8]()
         
@@ -55,7 +55,7 @@ class Request: NSObject{
         
         return finalArray
     }
-
+    
     public static func byteArrayToHexString(_ bytes: [UInt8], _ length: Int) -> String{
         var rxString: String = ""
         
@@ -63,12 +63,12 @@ class Request: NSObject{
             return rxString;
         }
         for i in 0..<length{
-//            if (i != 0 ){
-//                 rxString += "-"
-//            }
+            //            if (i != 0 ){
+            //                 rxString += "-"
+            //            }
             rxString += String(format: "%02X",bytes[Int(i)])
         }
-    
+        
         return rxString
     }
 }
@@ -82,7 +82,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     private var notifyCharacteristic: CBCharacteristic!
     private var notifyCharacteristicResponseType: CBCharacteristicWriteType!
-
+    
     private var lastError: IoTizeBleError?
     
     // SPP over BLE Service UUID (128-bit)
@@ -98,13 +98,13 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     private var currentRequest : Request?
     private static var bufferLength = 300
     private var flagDataAvailable = false
-   
+    
     private var rxBuffer = [UInt8](repeating: 0, count: bufferLength)
     private var rxBufferLength = 0
     
     private var txBuffer = [UInt8](repeating: 0, count: bufferLength)
     private var txBufferLength = 0
-    private var txBufferRest = 0 
+    private var txBufferRest = 0
     private var currentTxPacket = 0
     
     private var cancelling: Bool = false
@@ -121,12 +121,12 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         performSelector(inBackground: #selector(manageRequestQueue), with: nil)
     }
     
-    func connect( device: CBPeripheral, manager: BLEManager){        
+    func connect( device: CBPeripheral, manager: BLEManager){
         bleManager = manager
         lastError = nil
         bleDevice = device
-        bleDevice.delegate = self        
-        bleDevice.discoverServices([UUID_UPGRADE_SERVICE, SPPoverLE_SERVICE_UUID])       
+        bleDevice.delegate = self
+        bleDevice.discoverServices([UUID_UPGRADE_SERVICE, SPPoverLE_SERVICE_UUID])
     }
     
     func disconnect(){
@@ -141,15 +141,15 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     func checkConnection(completion: @escaping Completion){
         completion(lastError)
     }
-
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?){         
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?){
         if let error = error{
             lastError = IoTizeBleError.ServiceDiscoveryFailed(peripheral: peripheral)
             print("Error in discovering Services. Error : \(error.localizedDescription)")
             return
         }
         
-        for service in peripheral.services!{            
+        for service in peripheral.services!{
             if service.uuid == UUID_UPGRADE_SERVICE{
                 peripheral.discoverCharacteristics([UUID_UPGRADE_APP_INFO], for: service)
             }
@@ -180,13 +180,13 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 }
                 print("$$$$> Did discover characteristics")
             }
- 
+            
             // Get the Broadcom firmware version
             if characteristic.uuid == UUID_UPGRADE_APP_INFO{
                 bleDevice?.readValue(for: characteristic)
             }
         }
-
+        
         if ( notifyCharacteristic == nil ){
             lastError = IoTizeBleError.CharacteristicSPPNotFound(peripheral: peripheral)
         }
@@ -198,7 +198,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         if error != nil {
             lastError = IoTizeBleError.CharacteristicNotifyChangeFailed()
             return
-        }                
+        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?){
@@ -215,42 +215,42 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     }
     
     //reception: data is received in pieces
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?){        
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?){
         if error != nil {
             return
         }
         //print ("didUpdateValueFor event triggered")
         
-        let data = [UInt8](characteristic.value!)        
+        let data = [UInt8](characteristic.value!)
         //ble firmware version
         if (characteristic.uuid == UUID_UPGRADE_APP_INFO){
             let major = Int(data[2])
             let minor = Int(data[3])
-            bleVersion = "\(major).\(minor)" 
+            bleVersion = "\(major).\(minor)"
             if (!isFirmwareUpToDate(major,minor, BLEPeripheral.minMajor, BLEPeripheral.minMinor)){
                 lastError = IoTizeBleError.BleVersionIsOld(version: bleVersion)
-            }            
-            return          
+            }
+            return
         }
         
         //data
         if (characteristic.isEqual(notifyCharacteristic) != true) || (data.count <= 0){
             return
         }
-
+        
         rxBufferLength += (data.count - 1)
-            
+        
         if (rxBufferLength > BLEPeripheral.bufferLength){
             rxBufferLength = BLEPeripheral.bufferLength
         }
-            
-        let offset = Int(data[0] & 0xFF) - 1    
+        
+        let offset = Int(data[0] & 0xFF) - 1
         if ((offset + data.count) < BLEPeripheral.bufferLength){
             rxBuffer.replaceSubrange((offset + 1)..<(offset + data.count), with: data[1..<data.count])
         }
-            
+        
         //end of packet
-        if (offset == -1){                
+        if (offset == -1){
             var checksum : UInt8 = 0
             
             // Remove checksum to length
@@ -269,39 +269,39 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 rxBuffer[rxBufferLength - 2] = 0x66
                 rxBuffer[rxBufferLength - 1] = 0x02
             }
-        
+            
             if (currentRequest != nil){
                 currentRequest!.rxData = Request.byteArrayToHexString(rxBuffer, rxBufferLength)
                 print("##> ---------------------- received answer \(currentRequest!.txData)")
                 currentRequest = nil
             }
-
+            
             flagDataAvailable = true
-        }               
+        }
     }
-     
-   
-    func SendRequest(_ data: [UInt8]){        
+    
+    
+    func SendRequest(_ data: [UInt8]){
         rxBufferLength = 0
         flagDataAvailable = false
-        send_All_TX_Packets(data)        
+        send_All_TX_Packets(data)
     }
     
     func send( data: String, completion: @escaping CompletionWithResponse){
-//        DispatchQueue.main.async {
-//            self.rxBufferLength = 0
-//            self.flagDataAvailable = false
-//            self.currentRequest = Request(txData: data, completion: completion)
-//            self.currentRequest!.waitForResponse()
-//            self.send_All_TX_Packets(Request.stringToHexArray(data))
-//        }
+        //        DispatchQueue.main.async {
+        //            self.rxBufferLength = 0
+        //            self.flagDataAvailable = false
+        //            self.currentRequest = Request(txData: data, completion: completion)
+        //            self.currentRequest!.waitForResponse()
+        //            self.send_All_TX_Packets(Request.stringToHexArray(data))
+        //        }
         let req = Request(txData: data,completion: completion)
         print("##> --------------------------- sen request \(data)")
         requestQueue.enqueue(req);
     }
-
+    
     func send_All_TX_Packets(_ data: [UInt8]){
-        var chksum : UInt8 = 0        
+        var chksum : UInt8 = 0
         if (data.count > 0){
             txBufferLength = data.count;
             txBuffer = Array(data[0..<txBufferLength])
@@ -319,12 +319,12 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             // Compute number of packet to send
             currentTxPacket = txBufferLength / BLEPeripheral.LEN_PACKET
             txBufferRest = txBufferLength % BLEPeripheral.LEN_PACKET
-    
+            
             if (txBufferRest == 0){
                 currentTxPacket = currentTxPacket - 1
                 txBufferRest = BLEPeripheral.LEN_PACKET
             }
-    
+            
             send_one_TX_Packet(currentTxPacket)
         }
     }
@@ -344,18 +344,18 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             offset = 0;
             len = txBufferRest
         }
-    
+        
         var packet = [UInt8](repeating: 0, count : len + 1)
         packet[0] = UInt8(offset)
         for i in 0..<len{
             packet[i + 1] = txBuffer[offset + i]
         }
         if (notifyCharacteristic != nil && notifyCharacteristicResponseType != nil) {
-             //print("$$$$> Did write request")
+//            print("$$$$> Did write request")
             //print ("CharacteristicResponseType: \(notifyCharacteristicResponseType == CBCharacteristicWriteType.withResponse ? "withResponse": "withoutResponse")")
-             bleDevice.writeValue(Data(packet), for: notifyCharacteristic!, type: notifyCharacteristicResponseType!)
+            bleDevice.writeValue(Data(packet), for: notifyCharacteristic!, type: notifyCharacteristicResponseType!)
         }
-       
+        
     }
     
     // Implement a rule to check if the current device's firmware is up to date versus check version
@@ -365,7 +365,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     @objc func manageRequestQueue() {
         repeat {
-
+            
             //if we are not waiting for a response and we have something to send
             if (isReady && !self.cancelling && (self.currentRequest == nil) && !requestQueue.isEmpty){
                 let request = requestQueue.dequeue()!
@@ -377,7 +377,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 request.waitForResponse()
             }
             Thread.sleep(forTimeInterval: self.requestQueueManagementDelay)
-
+            
         } while true
     }
     

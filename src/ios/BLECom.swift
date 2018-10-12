@@ -44,7 +44,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccess(command: CDVInvokedUrlCommand, result: String){
-        //print("sendSuccess with String")
+        print("sendSuccess with String")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -52,8 +52,17 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send( pluginResult, callbackId: command.callbackId)
     }
     
+    private func sendSuccess(command: CDVInvokedUrlCommand, result: Bool) {
+        print("sendSuccess with Bool")
+        let pluginResult = CDVPluginResult(
+            status: CDVCommandStatus_OK,
+            messageAs: result
+        )
+        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+    }
+    
     func sendSuccess(command: CDVInvokedUrlCommand, result: DiscoveredDeviceType){
-        //print("sendSuccess with DDT")
+        print("sendSuccess with DDT")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result.ToJSON()
@@ -62,7 +71,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccessWithResponse(command: CDVInvokedUrlCommand, result: String){
-        //print("sendSuccessWithResponse with string")
+        print("sendSuccessWithResponse with string")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -72,7 +81,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendSuccessWithResponse(command: CDVInvokedUrlCommand, result: DiscoveredDeviceType){
-        //print("sendSuccessWithResponse with DDT")
+        print("sendSuccessWithResponse with DDT")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result.ToJSON()
@@ -82,7 +91,7 @@ struct IoTizeBleError: Error {
     }
     
     func sendError(command: CDVInvokedUrlCommand, result: String){
-        //print ("sendError called")
+        print ("sendError called")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_ERROR,
             messageAs: result
@@ -111,7 +120,7 @@ struct IoTizeBleError: Error {
                         self.sendError(command: command, result: error!.message)
                     }
                     else {
-                        self.sendSuccess(command: command, result: "Ok")
+                        self.sendSuccess(command: command, result: true)
                     }
                     
                 }
@@ -125,13 +134,13 @@ struct IoTizeBleError: Error {
     func startScan(command: CDVInvokedUrlCommand) {
         
         if (!self.isReady()){
-                
-                DispatchQueue.main.async {
-                    Thread.sleep(forTimeInterval: 0.01)
-                    self.startScan(command: command)
-                }
-                return
+            
+            DispatchQueue.main.async {
+                Thread.sleep(forTimeInterval: 0.01)
+                self.startScan(command: command)
             }
+            return
+        }
         
         self.bleController.beginScan(completion: {
             (result: Any, error: IoTizeBleError?) -> () in
@@ -268,20 +277,15 @@ struct IoTizeBleError: Error {
     func isReady() -> Bool {
         return bleController.isReady()
     }
-
+    
     @objc(getWriteType:)
     func getWriteType(command: CDVInvokedUrlCommand) {
-    guard let responseType = self.bleController.getNotifyCharacteristicResponseType() else {
-        self.sendError(command: command, result: "could not get write type")
-        return
+        guard let responseType = self.bleController.getNotifyCharacteristicResponseType() else {
+            self.sendError(command: command, result: "could not get write type")
+            return
         }
         
         let message: String = responseType == CBCharacteristicWriteType.withResponse ? "with response" : "without response"
         self.sendSuccess(command: command, result: message)
-        }
-    
-    func observeDisconnection(command: CDVInvokedUrlCommand) {
-        DispatchQueue.main.async {
-        }
     }
 }
