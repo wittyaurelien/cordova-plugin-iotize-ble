@@ -11,6 +11,7 @@ import CoreBluetooth
 
 
 class Request: NSObject{
+    
     let txData: String
     var cancelled : Bool
     let completion: CompletionWithResponse
@@ -27,7 +28,7 @@ class Request: NSObject{
     public func waitForResponse(){
         DispatchQueue.global().async {
             print("$$$$> Did start timeout")
-            for _ in 1...5000 { // 5?s timeout
+            for _ in 1...2000 { // 5?s timeout
                 if (self.cancelled) {
                     print("$$$$>Request cancelled")
                     return
@@ -40,6 +41,7 @@ class Request: NSObject{
             }
             print("$$$$> Did end with timeout")
             self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
+            self.cancelled = true;
         }
     }
     
@@ -179,6 +181,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                     notifyCharacteristicResponseType = CBCharacteristicWriteType.withoutResponse
                 }
                 print("$$$$> Did discover characteristics")
+                self.isReady = true;
             }
             
             // Get the Broadcom firmware version
@@ -191,7 +194,6 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             lastError = IoTizeBleError.CharacteristicSPPNotFound(peripheral: peripheral)
         }
         
-        self.isReady = true;
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?){
@@ -324,8 +326,16 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 currentTxPacket = currentTxPacket - 1
                 txBufferRest = BLEPeripheral.LEN_PACKET
             }
-            
             send_one_TX_Packet(currentTxPacket)
+            
+            if (notifyCharacteristicResponseType == CBCharacteristicWriteType.withoutResponse) {
+                while ( currentTxPacket > 0){
+                        currentTxPacket = currentTxPacket - 1
+                        send_one_TX_Packet(currentTxPacket)
+                }
+            }
+            
+           
         }
     }
     
@@ -350,9 +360,10 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         for i in 0..<len{
             packet[i + 1] = txBuffer[offset + i]
         }
+        
         if (notifyCharacteristic != nil && notifyCharacteristicResponseType != nil) {
-//            print("$$$$> Did write request")
-            //print ("CharacteristicResponseType: \(notifyCharacteristicResponseType == CBCharacteristicWriteType.withResponse ? "withResponse": "withoutResponse")")
+            print("$$$$> Did write request \(packet)")
+            print ("CharacteristicResponseType: \(notifyCharacteristicResponseType == CBCharacteristicWriteType.withResponse ? "withResponse": "withoutResponse")")
             bleDevice.writeValue(Data(packet), for: notifyCharacteristic!, type: notifyCharacteristicResponseType!)
         }
         
@@ -365,7 +376,9 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     @objc func manageRequestQueue() {
         repeat {
-            
+            if (self.currentRequest !== nil && self.currentRequest!.cancelled) {
+                self.currentRequest = nil
+            }
             //if we are not waiting for a response and we have something to send
             if (isReady && !self.cancelling && (self.currentRequest == nil) && !requestQueue.isEmpty){
                 let request = requestQueue.dequeue()!
@@ -375,6 +388,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 print ("##> ------------------- Actual sent of \(request.txData)")
                 self.send_All_TX_Packets(Request.stringToHexArray(request.txData))
                 request.waitForResponse()
+                
             }
             Thread.sleep(forTimeInterval: self.requestQueueManagementDelay)
             
