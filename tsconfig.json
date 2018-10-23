@@ -11,6 +11,7 @@
       "sourceMap": true,
       "inlineSources": true,
       "noEmitOnError": true,
+      "declaration": true,
       "outDir": "./dist"
     },
     "include": [
