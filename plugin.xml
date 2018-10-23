@@ -2,7 +2,7 @@
 <plugin
     xmlns="http://apache.org/cordova/ns/plugins/1.0" 
     id="cordova-plugin-iotize-ble"
-    version="1.0.3">
+    version="1.1.0-alpha.1">
 
     <name>cordova-plugin-iotize-ble</name>
     <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
@@ -25,9 +25,9 @@
     <source-file src="src/android/src/JSONBuilder.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/ArgsHelper.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/PluginResponse.java" target-dir="src/com/iotize/plugin"/>
-    <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
+    <!-- <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
     <resource-file src="src/android/libs/iotize-device-api-release.aar" target="../../libs/iotize-device-api.aar" />
-    <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" />
+    <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" /> -->
       <config-file target="AndroidManifest.xml" parent="/manifest">
           <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
           <uses-permission android:name="android.permission.BLUETOOTH"/>
