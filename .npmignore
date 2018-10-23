@@ -9,3 +9,4 @@ bin
 .idea
 projects
 README-DEV.md
+node_modules
