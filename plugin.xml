@@ -25,8 +25,8 @@
     <source-file src="src/android/src/JSONBuilder.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/ArgsHelper.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/PluginResponse.java" target-dir="src/com/iotize/plugin"/>
-    <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
     <!-- <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
+    <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
     <resource-file src="src/android/libs/iotize-device-api-release.aar" target="../../libs/iotize-device-api.aar" />
     <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" />
     <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" /> -->
