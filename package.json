@@ -1,7 +1,13 @@
 {
   "name": "@iotize/cordova-plugin-iotize-ble",
-  "version": "1.0.2-alpha.2",
+  "version": "1.1.0-alpha.4",
+  "main": "./dist/index.js",
   "description": "Bluetooth Low Energy (BLE) for IoTize modules Plugin",
+  "scripts": {
+    "clean": "rm -rf ./dist/*",
+    "build": "npm run clean && tsc -p ./tsconfig.json",
+    "prepare": "npm run build"
+  },
   "cordova": {
     "id": "cordova-plugin-iotize-ble",
     "platforms": [
@@ -24,5 +30,16 @@
   ],
   "author": "IoTize SAS <support@iotize.com>",
   "license": "MIT",
-  "homepage": "#readme"
+  "homepage": "#readme",
+  "devDependencies": {
+    "@iotize/device-client.js": "0.0.1-alpha.48",
+    "@types/cordova": "0.0.34",
+    "@types/p-queue": "^2.3.1",
+    "rxjs": "^6.0.0",
+    "typescript": "^3.1.3"
+  },
+  "peerDependencies": {
+    "@iotize/device-client.js": "^0.0.1-alpha.48",
+    "rxjs": "^6.0.0"
+  }
 }
