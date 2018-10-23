@@ -1,3 +1,10 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  cordova-interface.ts
+//  device-com-ble.cordova BLE Cordova Plugin
+//
+
 // import { exec } from "cordova";
 export interface CordovaInterface {
 

@@ -1,3 +1,10 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  scanner.ts
+//  device-com-ble.cordova BLE Cordova Plugin
+//
+
 import { Subject, Observable } from 'rxjs';
 import { DeviceScanner, DeviceScannerOptions } from '@iotize/device-client.js/device/scanner/device-scanner';
 import { CordovaInterface } from './cordova-interface';

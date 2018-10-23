@@ -1,102 +1,108 @@
 //
-//  BLEManager.swift
-//  IoTize
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
 //
-//  Created by IoTize on 26/05/2017.
-//  Copyright © 2017 IoTize. All rights reserved.
+//  BLEManager.swift
+//  device-com-ble.cordova BLE Cordova Plugin
 //
 
 import CoreBluetooth
 
+//Callback type,  methods with no returned value
 typealias Completion = (IoTizeBleError?) -> ()
+
+//Callback type, methods with returning values
 typealias CompletionWithResponse = (Any , IoTizeBleError?) -> ()
 
-
-/// The functions within this class are all callbacks from the BLE device and serves the purpose of correctly connecting with the device and retrieving its informations
+//Central manager handling devices and ble callbacks.
 class BLEManager: NSObject, CBCentralManagerDelegate
 {
-    //ios GATT
+    //ios BLE central manager
     private var centralManager: CBCentralManager!
     
-    //IoTize devices are filtered using this service
+    //IoTize devices are filtered using the UUID of the service used for data exchange
     let serviceUUID = CBUUID(string: "6C7B16C2-2A5B-8C9F-CF42-D31425470E7B")
     
-    var discoveredPeripherals = [CBPeripheral]()  // table of discoveredPeripherals, initially it is empty
-    var stateChangeCompletion: Completion?        //callback when the state is retreived
-    var connectionChangeCompletion: Completion?   //callback when the connection state is retreived
-    var disconnectionErrorCompletion: Completion?   //callback to use when the device disconnected erroneously
-    var discoveryCompletion: CompletionWithResponse?   //callback when the connection state is retreived
+    var discoveredPeripherals = [CBPeripheral]()        //list of discovered devices
+    var blestateChangeCompletion: Completion?           //callback called when the ble state is changing
+    var connectionChangeCompletion: Completion?         //callback called when the ble connection states is changing
+    var disconnectionErrorCompletion: Completion?       //callback called when a device is disconnected erroneously
+    var discoveryCompletion: CompletionWithResponse?    //callback called when a new device is discovered
     
+    //currently connected device
     private var connectedDevice: BLEPeripheral?
     
-    override init()
-    {
+    override init(){
         super.init()
         
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
-        stateChangeCompletion = nil
+        
+        //Initializations
+        blestateChangeCompletion = nil
         connectionChangeCompletion = nil
         disconnectionErrorCompletion = nil
         connectedDevice = nil
         discoveryCompletion = nil
     }
+       
     
-    func checkState(completion: @escaping Completion){
-        stateChangeCompletion = completion
-    }
-    
-    /* search for devices, scanForPeripherals function is been called
-     */
+    // Start Scanning Iotize devices
     func beginScan(completion: @escaping CompletionWithResponse){
+        print("--> Start Scanning")
         if #available(iOS 10.0, *) {
             if (centralManager.state == CBManagerState.poweredOn){
                 discoveryCompletion = completion
                 discoveredPeripherals.removeAll()
                 centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
                 
-                print("--> Start Scanning")
+               
                 discoveryCompletion!("Ok", nil)
             } else {
-                //print("#######> ---- Bluetooth not available yet")
+                print("<-- BLE not enabled")
             }
         } else {
-            // Fallback on earlier versions
+                print("<-- no BLE capability")
         }
     }
     
+    // Stop Scanning devices
     func stopScan(){
-        centralManager.stopScan()
         print("--> Stop Scanning")
+        centralManager.stopScan()        
     }
     
-    /* to connect to a device we need to stop scanning at first
-     */
+    // Connection with a device
     func connect(_ device: CBPeripheral){
+        print("--> Start Connecting")
+        
+        //stop scanning first
         centralManager.stopScan()
         
+        //disconnect the currently selected device first
         if (connectedDevice == nil){
             connectedDevice = BLEPeripheral()
         } else {
             connectedDevice!.disconnect()
         }
-        //connectedDevice!.connect(device: device, manager: self)
+
         centralManager.connect(device, options: nil)
-        print("--> Start Connecting")
     }
     
-    /* to connect to a device using its name
-     */
-    func connectWithUUID( device: String, completion: @escaping Completion)
-    {
+    // Connection to a device using its UUID. ios GATT uses UUID in spite of MAC address
+    func connectWithUUID( device: String, completion: @escaping Completion){
+        print("--> Start Connecting with UUID")
+        
+        //stop scanning first
         centralManager.stopScan()
         
+        //save callback methods
         connectionChangeCompletion = completion
         disconnectionErrorCompletion = completion
+        
+        //in ios the device should be scanned in order 
+        //to enable connection
         for item : CBPeripheral in discoveredPeripherals{
             
             let name = item.identifier.uuidString
-            //print("name: " + name)
-            //print("device: " + device)
             if (name != nil) {
                 
                 if (name == device){
@@ -109,13 +115,13 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         }
     }
     
-    /* call the function cancelPeripheralConnection to disconnect
-     */
+    // Disconnect from the currently selected device
     func disconnect( completion: @escaping Completion){
-        
-        
+        print("--> Start Disconnecting")
+
+        //save callback method 
         connectionChangeCompletion = completion
-        //for the moment we just handle one device
+        
         if ( connectedDevice != nil ){
             if connectedDevice!.bleDevice != nil {
                 centralManager.cancelPeripheralConnection(connectedDevice!.bleDevice)
@@ -124,18 +130,12 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             connectedDevice = nil
         }
     }
-    
-    func checkConnection() -> Bool {
-        return (connectedDevice != nil)
-    }
-    
-    /*if bluetooth manager not powered on then no bluetooth is available
-     */
+  
+    //BLE state changing
     func centralManagerDidUpdateState (_ central: CBCentralManager){
         var error: IoTizeBleError?
         switch centralManager.state{
         case .poweredOn:
-            print("------------> Central Manager is On")
             break
         case .poweredOff:
             error = IoTizeBleError.BlePoweredOff()
@@ -154,22 +154,25 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             break
             
         }
-        if (self.stateChangeCompletion != nil){
-            self.stateChangeCompletion!(error)
-            self.stateChangeCompletion = nil
+        
+        //call the calleback to notify the app, 
+        //this call back is used only 
+        if (self.blestateChangeCompletion != nil){
+            self.blestateChangeCompletion!(error)
+            self.blestateChangeCompletion = nil
         }
     }
     
-    /* this function aim to discover the CBPeripheral
-     * we define peripheral and name then we call discoveredDevice using these two
-     */
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber)
-    {
-        if (!discoveredPeripherals.contains(peripheral))  // if the table discoveredPeripherals does not contain peripheral
-        {
-            if let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String //define name
-            {
-                discoveredPeripherals.append(peripheral)  // add peripheral to the table
+    //Called when a new device has been detected
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber){
+        //do we know this device
+        if (!discoveredPeripherals.contains(peripheral)){
+            //do we have a name
+            if let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String{
+                print("### Did discover \(name)")
+                //add peripheral to the table
+                discoveredPeripherals.append(peripheral)  
+                //call the discovery callback
                 if ( discoveryCompletion != nil){
                     discoveryCompletion!(
                         CBPeripheralConverter.toDiscoveredDeviceType(device: peripheral, rssi: RSSI as? Int)
@@ -178,74 +181,58 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             }
         }
     }
-    
-    /* returns the currently discovered list of devices names
-     */
-    func getDeviceList() -> String {
-        var listStr:String = ""; //string list to return
-        //names are separated by \n
-        for item : CBPeripheral in discoveredPeripherals{
-            let name = item.name
-            //print("******* device name : \(name)")
-            if ( (name != nil) && (name!.count != 0) ) {
-                listStr = name! + "\n" + listStr
-            }
-        }
-        return listStr;
-    }
-    
-    /* this function aim to connect the CBPeripheral
-     * we call bluetoothConnected using peripheral as paramater
-     */
+        
+    //Called when a connection has been established
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral){
         
+        print("### Did connect \(String(describing: peripheral.name))")
         if ( connectionChangeCompletion != nil){
             
             if (connectedDevice != nil){
-                connectedDevice!.connect(device: peripheral, manager: self)
+                connectedDevice!.connect(device: peripheral, manager: self)            
             }
-            connectionChangeCompletion!(nil)
-            connectionChangeCompletion = nil
-            print("\n$$$$>\n$$$$> Did Connect to \(String(describing: peripheral.name))")
-            
+
+            //callback without error
+            if (connectionChangeCompletion){
+                connectionChangeCompletion!(nil)
+                connectionChangeCompletion = nil
+            }            
         }
     }
     
-    /* this function aim to check if connection is failed the CBPeripheral
-     * we call connectionFailed
-     */
+    //Called when connection fails
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?){
         
+        print("### Error in connecting to device. Error: \(String(describing: error?.localizedDescription))")
+        
+        //callback with error
         if ( connectionChangeCompletion != nil){
             connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
             connectionChangeCompletion = nil
         }
-        print("--> Error in connecting to device. Error: \(String(describing: error?.localizedDescription))")
         connectedDevice = nil
     }
     
     
-    /* this function is called the CBPeripheral did disconnect
-     *
-     */
+    //Called when disconnected
     func centralManager (_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?){
         
+        print("### Did disconnect from device: \(String(describing: peripheral.name))")
+               
+        //callback without error, if we have requested this disconnection
         if ( connectionChangeCompletion != nil){
             connectionChangeCompletion!(nil)
             connectionChangeCompletion = nil
             return
         }
-        //        connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
         
-        // This registers an error when disconnection happens spontaneously (e.g. peripheral out of range or powered off)
+        // Unwanted disconnection (e.g. peripheral out of range or powered off)
         if (disconnectionErrorCompletion != nil) {
-            //print("disconnectionErrorCompletion occured")
+            print("### Did Unwanted disconnection from device: \(String(describing: peripheral.name))")       
             disconnectionErrorCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
             disconnectionErrorCompletion = nil
-        } else {
-            //print("disconnectionErrorCompletion didn't occur")
-        }
-        //print("--> Error in disconnecting device. Error: \(String(describing: error?.localizedDescription))")
+        } 
+
         connectedDevice = nil
     }
     
@@ -279,5 +266,10 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     
     func isConnected() -> Bool {
         return self.connectedDevice != nil
+    }
+    
+    
+    func checkState(completion: @escaping Completion){
+        blestateChangeCompletion = completion    
     }
 }

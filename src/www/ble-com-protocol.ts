@@ -1,3 +1,10 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  ble-com-protocol.ts
+//  device-com-ble.cordova BLE Cordova Plugin
+//
+
 import { QueueComProtocol } from '@iotize/device-client.js/protocol/impl/queue-com-protocol';
 import { ComProtocolConnectOptions, ComProtocolDisconnectOptions, ComProtocolSendOptions } from '@iotize/device-client.js/protocol/api/com-protocol.interface';
 import { FormatHelper } from '@iotize/device-client.js/core/format/format-helper';

@@ -1,3 +1,9 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  BLEComError.java
+//  device-com-ble.cordova BLE Cordova Plugin
+//
 package com.iotize.plugin;
 
 public class BLEComError extends Exception {

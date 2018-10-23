@@ -1,8 +1,8 @@
 //
-//  CBPeripheralConverter.swift
-//  Iotize Monitoring
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
 //
-//  Created by dev@iotize.com on 04/09/2018.
+//  CBPeripheralConverter.swift
+//  device-com-ble.cordova BLE Cordova Plugin
 //
 
 import CoreBluetooth

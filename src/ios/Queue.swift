@@ -1,12 +1,13 @@
 //
-//  Queue.swift
-//  Iotize Monitoring
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
 //
-//  Created by dev@iotize.com on 05/09/2018.
+//  Queue.swift
+//  device-com-ble.cordova BLE Cordova Plugin
 //
 
 import Foundation
 
+//Helper class 
 public struct Queue<T> {
     
     private var queueArray = [T]()

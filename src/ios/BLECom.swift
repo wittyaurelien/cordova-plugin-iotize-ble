@@ -1,3 +1,9 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  BLECom.swift
+//  device-com-ble.cordova BLE Cordova Plugin
+//
 
 import Foundation
 import CoreBluetooth
@@ -29,10 +35,10 @@ struct IoTizeBleError: Error {
     
     static func InvalidWriteData(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:403, message:"Invalid write data for \(peripheral.name)" )}
     static func TimedOutRequest(msg: String) -> IoTizeBleError { return IoTizeBleError(code:404, message:"Waiting for response timed out, txData: " + msg )}
-    
-    
+        
 }
 
+//Main class handling the plugin functionalities.
 @objc(BLECom) class BLECom : CDVPlugin {
     
     var bleController: BLEManager!
@@ -43,8 +49,8 @@ struct IoTizeBleError: Error {
         bleController = BLEManager()
     }
     
+    //helper to return a string 
     func sendSuccess(command: CDVInvokedUrlCommand, result: String){
-        print("sendSuccess with String")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -52,8 +58,8 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send( pluginResult, callbackId: command.callbackId)
     }
     
+    //helper to return a boolean 
     private func sendSuccess(command: CDVInvokedUrlCommand, result: Bool) {
-        print("sendSuccess with Bool")
         let pluginResult = CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -61,8 +67,8 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
     }
     
+    //helper to return a JSon object 
     func sendSuccess(command: CDVInvokedUrlCommand, result: DiscoveredDeviceType){
-        print("sendSuccess with DDT")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result.ToJSON()
@@ -70,8 +76,8 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send( pluginResult, callbackId: command.callbackId)
     }
     
+    //helper to return a String with keeping the callback
     func sendSuccessWithResponse(command: CDVInvokedUrlCommand, result: String){
-        print("sendSuccessWithResponse with string")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result
@@ -80,8 +86,8 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send( pluginResult, callbackId: command.callbackId )
     }
     
+    //helper to return a JSon object with keeping the callback
     func sendSuccessWithResponse(command: CDVInvokedUrlCommand, result: DiscoveredDeviceType){
-        print("sendSuccessWithResponse with DDT")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_OK,
             messageAs: result.ToJSON()
@@ -90,8 +96,8 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send( pluginResult, callbackId: command.callbackId )
     }
     
+    //helper to send back an error
     func sendError(command: CDVInvokedUrlCommand, result: String){
-        print ("sendError called")
         let pluginResult =  CDVPluginResult(
             status: CDVCommandStatus_ERROR,
             messageAs: result
@@ -99,6 +105,7 @@ struct IoTizeBleError: Error {
         self.commandDelegate!.send( pluginResult, callbackId: command.callbackId)
     }
     
+    //Is BLE available
     @objc(checkAvailable:)
     func checkAvailable(command: CDVInvokedUrlCommand) {
         
@@ -128,8 +135,8 @@ struct IoTizeBleError: Error {
         }
     }
     
-    //Start scanning for IoTize devices
-    
+
+    //Start scanning  IoTize devices    
     @objc(startScan:)
     func startScan(command: CDVInvokedUrlCommand) {
         
@@ -163,7 +170,7 @@ struct IoTizeBleError: Error {
         })
     }
     
-    //Stop scanning for IoTize devices
+    //Stop scanning 
     @objc(stopScan:)
     func stopScan(command: CDVInvokedUrlCommand) {
         bleController.stopScan();
@@ -200,7 +207,7 @@ struct IoTizeBleError: Error {
         })
     }
     
-    //Disconnect to a device using its name
+    //Disconnect from a device using its name
     @objc(disConnect:)
     func disConnect(command: CDVInvokedUrlCommand) {
         
@@ -222,13 +229,13 @@ struct IoTizeBleError: Error {
                     self.sendError(command: command, result: error!.message)
                 }
                 else {
-                    //print("##> Sending Disconnected Ok")
                     self.sendSuccess(command: command, result: "Ok")
                 }
             }
         })
     }
     
+    //Retrieve additional information
     @objc(getLastError:)
     func getLastError(command: CDVInvokedUrlCommand) {
         let msg: String = (lastError != nil) ? (lastError!.message) : ""
@@ -259,14 +266,11 @@ struct IoTizeBleError: Error {
                 }
                 else {
                     if let responseString = response as? String {
-                        //print("##> Sending Request Ok " + responseString)
                         self.sendSuccess(command: command, result: responseString)
                     }
                     else if let responseDiscoveredDevice = response as? DiscoveredDeviceType {
-                        //print("##> Sending Request Ok, response as DiscoveredDeviceType")
                         self.sendSuccess(command: command, result: responseDiscoveredDevice)
                     } else if let responseDevice = response as? CBPeripheral {
-                        //print("##> Sending Request OK, response as CBPeripheral")
                         self.sendSuccess(command: command, result: CBPeripheralConverter.toDiscoveredDeviceType(device: responseDevice))
                     }
                 }
@@ -274,18 +278,13 @@ struct IoTizeBleError: Error {
         })
     }
     
+    @objc(isConnected:)
+    func isConnected() -> Bool {
+        return bleController.isConnected()
+    }
+
     func isReady() -> Bool {
         return bleController.isReady()
     }
-    
-    @objc(getWriteType:)
-    func getWriteType(command: CDVInvokedUrlCommand) {
-        guard let responseType = self.bleController.getNotifyCharacteristicResponseType() else {
-            self.sendError(command: command, result: "could not get write type")
-            return
-        }
-        
-        let message: String = responseType == CBCharacteristicWriteType.withResponse ? "with response" : "without response"
-        self.sendSuccess(command: command, result: message)
-    }
+
 }

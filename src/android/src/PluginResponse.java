@@ -1,3 +1,9 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  PluginResponse.java
+//  device-com-ble.cordova BLE Cordova Plugin
+//
 package com.iotize.plugin;
 
 import com.iotize.android.core.util.Helper;

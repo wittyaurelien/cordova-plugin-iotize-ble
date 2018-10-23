@@ -1,3 +1,10 @@
+//
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
+//
+//  iotize-ble-com.js
+//  device-com-ble.cordova BLE Cordova Plugin
+//
+
     var iotizeProxy = null;
     
     //checking that the winmd is properly loaded
@@ -6,9 +13,10 @@
         return ( (iotizeProxy != null) || ( (iotizeProxy = IoTizeBLE.BLEManager()) != null) );
     }
 
-    //scanning devices
+   
+    //discovery callback returning JSON object with the information
     var discoveryCallback = null;
-
+    
     function handleDiscoveryCallback( jsonResponse ) {
         
         if (discoveryCallback != null){            
@@ -16,7 +24,7 @@
         }
     }
 
-    //connection
+    //connection callback returning errors
     var connectionErrorCallback = null;
 
     function handleConnectionErrorCallback( ) {
@@ -27,7 +35,6 @@
     }
 
     cordova.commandProxy.add("BLECom", {
-
 
         getLastError: function (successCallback, errorCallback) {
 

@@ -1,21 +1,27 @@
 //
-//  BluetoothDevice.swift
-//  IoTize
+//  Copyright 2018 IoTize SAS Inc.  Licensed under the MIT license. 
 //
-//  Created by IoTize on 26/05/2017.
-//  Copyright © 2017 IoTize. All rights reserved.
+//  BLEPeripheral.swift
+//  device-com-ble.cordova BLE Cordova Plugin
 //
 
 import Foundation
 import CoreBluetooth
 
-
+//Serial Data transmission using a queue of requests
 class Request: NSObject{
     
+    //transmitted data
     let txData: String
-    var cancelled : Bool
-    let completion: CompletionWithResponse
+    
+    //received data
     var rxData: String?
+    
+    //request has been canceled
+    var cancelled : Bool
+
+    //callbakc to send back the received data
+    let completion: CompletionWithResponse
     
     static let waitingTimeInterval: Double = 0.001
     
@@ -25,26 +31,28 @@ class Request: NSObject{
         self.cancelled = false
     }
     
+    //wait loop for response from device
     public func waitForResponse(){
         DispatchQueue.global().async {
-            print("$$$$> Did start timeout")
-            for _ in 1...2000 { // 5?s timeout
+            for _ in 1...2000 { // 2s timeout
                 if (self.cancelled) {
-                    print("$$$$>Request cancelled")
                     return
                 }
+                //received data return the result to the application
                 if ( self.rxData != nil ) {
                     self.completion(self.rxData!,nil)
+                    print("---------------------- received answer \(self.rxData)")
                     return
                 }
                 Thread.sleep(forTimeInterval: Request.waitingTimeInterval)
             }
-            print("$$$$> Did end with timeout")
+            //timed out
             self.completion( "", IoTizeBleError.TimedOutRequest(msg: self.txData))
             self.cancelled = true;
         }
     }
-    
+
+    //helper function 
     public static func stringToHexArray(_ string: String) -> [UInt8]{
         var stest = string.map { String($0) }
         var finalArray = [UInt8]()
@@ -57,7 +65,8 @@ class Request: NSObject{
         
         return finalArray
     }
-    
+
+    //helper function
     public static func byteArrayToHexString(_ bytes: [UInt8], _ length: Int) -> String{
         var rxString: String = ""
         
@@ -65,9 +74,6 @@ class Request: NSObject{
             return rxString;
         }
         for i in 0..<length{
-            //            if (i != 0 ){
-            //                 rxString += "-"
-            //            }
             rxString += String(format: "%02X",bytes[Int(i)])
         }
         
@@ -75,13 +81,17 @@ class Request: NSObject{
     }
 }
 
+//Peripheral class
 class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     public var bleDevice: CBPeripheral!
     private var bleManager: BLEManager!
     
+    //a queue of commands waiting to be transmitted
     private var requestQueue = Queue<Request>()
+    private var currentRequest : Request?
     
+    //notify mode
     private var notifyCharacteristic: CBCharacteristic!
     private var notifyCharacteristicResponseType: CBCharacteristicWriteType!
     
@@ -95,21 +105,26 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     private let UUID_UPGRADE_SERVICE = CBUUID(string: "9e5d1e47-5c13-43a0-8635-82ad38a1386f");
     private let UUID_UPGRADE_APP_INFO = CBUUID(string: "347f7608-2e2d-47eb-913b-75d4edc4de3b");
     
+    //device ble firmware version
     private var bleVersion: String="0.0";
     
-    private var currentRequest : Request?
     private static var bufferLength = 300
     private var flagDataAvailable = false
     
+    //transmission buffer
     private var rxBuffer = [UInt8](repeating: 0, count: bufferLength)
     private var rxBufferLength = 0
     
+    //reception buffer
     private var txBuffer = [UInt8](repeating: 0, count: bufferLength)
     private var txBufferLength = 0
     private var txBufferRest = 0
     private var currentTxPacket = 0
     
+    //request transmission has been cancelled
     private var cancelling: Bool = false
+
+    //wait until the device is ready to transmit data
     private var isReady: Bool = false
     
     private static var minMajor = 1
@@ -147,7 +162,6 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?){
         if let error = error{
             lastError = IoTizeBleError.ServiceDiscoveryFailed(peripheral: peripheral)
-            print("Error in discovering Services. Error : \(error.localizedDescription)")
             return
         }
         
@@ -157,13 +171,13 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             }
             
             if service.uuid == SPPoverLE_SERVICE_UUID{
-                print("$$$> Did discover service")
                 peripheral.discoverCharacteristics([SPPoverLE_BUFFER_CHAR_UUID], for: service)
                 
             }
         }
     }
-    
+
+    //characteristics callback 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?){
         if error != nil {
             lastError = IoTizeBleError.CharacteristicsDiscoveryFailed(peripheral:  peripheral)
@@ -180,7 +194,6 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 if (characteristic.properties.rawValue & CBCharacteristicProperties.writeWithoutResponse.rawValue) != 0{
                     notifyCharacteristicResponseType = CBCharacteristicWriteType.withoutResponse
                 }
-                print("$$$$> Did discover characteristics")
                 self.isReady = true;
             }
             
@@ -196,6 +209,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         
     }
     
+    //notify 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?){
         if error != nil {
             lastError = IoTizeBleError.CharacteristicNotifyChangeFailed()
@@ -203,6 +217,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         }
     }
     
+    //with response callback
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?){
         if error != nil {
             lastError = IoTizeBleError.InvalidWriteData(peripheral:  peripheral)
@@ -216,14 +231,14 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         }
     }
     
-    //reception: data is received in pieces
+    //Data is received in several packets
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?){
         if error != nil {
             return
         }
-        //print ("didUpdateValueFor event triggered")
         
         let data = [UInt8](characteristic.value!)
+        
         //ble firmware version
         if (characteristic.uuid == UUID_UPGRADE_APP_INFO){
             let major = Int(data[2])
@@ -251,7 +266,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             rxBuffer.replaceSubrange((offset + 1)..<(offset + data.count), with: data[1..<data.count])
         }
         
-        //end of packet
+        //end of packet is signaled with offset value set to -1
         if (offset == -1){
             var checksum : UInt8 = 0
             
@@ -267,14 +282,12 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             // Test checksum
             checksum = UInt8(tmp & 0xFF);
             if (checksum != rxBuffer[rxBufferLength]){
-                // Wrong checksum APDU error code
                 rxBuffer[rxBufferLength - 2] = 0x66
                 rxBuffer[rxBufferLength - 1] = 0x02
             }
             
             if (currentRequest != nil){
                 currentRequest!.rxData = Request.byteArrayToHexString(rxBuffer, rxBufferLength)
-                print("##> ---------------------- received answer \(currentRequest!.txData)")
                 currentRequest = nil
             }
             
@@ -290,15 +303,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     }
     
     func send( data: String, completion: @escaping CompletionWithResponse){
-        //        DispatchQueue.main.async {
-        //            self.rxBufferLength = 0
-        //            self.flagDataAvailable = false
-        //            self.currentRequest = Request(txData: data, completion: completion)
-        //            self.currentRequest!.waitForResponse()
-        //            self.send_All_TX_Packets(Request.stringToHexArray(data))
-        //        }
         let req = Request(txData: data,completion: completion)
-        print("##> --------------------------- sen request \(data)")
         requestQueue.enqueue(req);
     }
     
@@ -328,14 +333,13 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
             }
             send_one_TX_Packet(currentTxPacket)
             
+            //send without response we can send 
             if (notifyCharacteristicResponseType == CBCharacteristicWriteType.withoutResponse) {
                 while ( currentTxPacket > 0){
                         currentTxPacket = currentTxPacket - 1
                         send_one_TX_Packet(currentTxPacket)
                 }
-            }
-            
-           
+            }                       
         }
     }
     
@@ -362,8 +366,6 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         }
         
         if (notifyCharacteristic != nil && notifyCharacteristicResponseType != nil) {
-            print("$$$$> Did write request \(packet)")
-            print ("CharacteristicResponseType: \(notifyCharacteristicResponseType == CBCharacteristicWriteType.withResponse ? "withResponse": "withoutResponse")")
             bleDevice.writeValue(Data(packet), for: notifyCharacteristic!, type: notifyCharacteristicResponseType!)
         }
         
@@ -374,6 +376,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         return ((curMajor > checkMajor) || ((curMajor == checkMajor) && (curMinor >= checkMinor)))
     }
     
+    // Thread handling requests in serial 
     @objc func manageRequestQueue() {
         repeat {
             if (self.currentRequest !== nil && self.currentRequest!.cancelled) {
@@ -385,7 +388,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
                 self.rxBufferLength = 0
                 self.flagDataAvailable = false
                 self.currentRequest = request
-                print ("##> ------------------- Actual sent of \(request.txData)")
+                print("---------------------- send \(request.txData)")
                 self.send_All_TX_Packets(Request.stringToHexArray(request.txData))
                 request.waitForResponse()
                 
@@ -395,6 +398,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
         } while true
     }
     
+    //cancel all when disconnecting
     func cancelRequests() {
         self.cancelling = true;
         while (requestQueue.count > 0) {
