@@ -120,7 +120,9 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     override init(){
         super.init()
-        performSelector(inBackground: #selector(manageRequestQueue), with: nil)
+        DispatchQueue.global(qos: .background).async {
+            self.manageRequestQueue()
+        }
     }
     
     func connect( device: CBPeripheral, manager: BLEManager){
@@ -376,8 +378,10 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     
     @objc func manageRequestQueue() {
         repeat {
-            if (self.currentRequest !== nil && self.currentRequest!.cancelled) {
-                self.currentRequest = nil
+            if let currentRequest = self.currentRequest {
+                if currentRequest.cancelled {
+                    self.currentRequest = nil
+                }
             }
             //if we are not waiting for a response and we have something to send
             if (isReady && !self.cancelling && (self.currentRequest == nil) && !requestQueue.isEmpty){
