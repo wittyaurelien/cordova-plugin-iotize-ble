@@ -9,7 +9,7 @@
     "prepare": "npm run build"
   },
   "cordova": {
-    "id": "cordova-plugin-iotize-ble",
+    "id": "@iotize/cordova-plugin-iotize-ble",
     "platforms": [
       "ios",
       "android",
