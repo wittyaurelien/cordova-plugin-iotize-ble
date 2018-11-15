@@ -11,26 +11,11 @@
   "cordova": {
     "id": "@iotize/cordova-plugin-iotize-ble",
     "platforms": [
-      "ios",
       "android",
-      "windows"
+      "windows",
+      "ios"
     ]
   },
-  "keywords": [
-    "cordova",
-    "bluetooth",
-    "ble",
-    "bluetoothle",
-    "bluetooth le",
-    "low energy",
-    "iotize",
-    "cordova-windows",
-    "cordova-ios",
-    "cordova-android"
-  ],
-  "author": "IoTize SAS <support@iotize.com>",
-  "license": "MIT",
-  "homepage": "#readme",
   "devDependencies": {
     "@iotize/device-client.js": "0.0.1-alpha.48",
     "@types/cordova": "0.0.34",
@@ -41,5 +26,29 @@
   "peerDependencies": {
     "@iotize/device-client.js": "^0.0.1-alpha.48",
     "rxjs": "^6.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:iotize-solutions/device-com-ble.cordova.git"
+  },
+  "keywords": [
+    "bluetooth",
+    "BLE",
+    "ble",
+    "bluetooth low energy",
+    "bluetoothle",
+    "bluetooth le",
+    "TapNLink",
+    "low energy",
+    "iotize",
+    "IoTize",
+    "ecosystem:cordova",
+    "cordova",
+    "cordova-android",
+    "cordova-windows",
+    "cordova-ios"
+  ],
+  "author": "IoTize SAS <support@iotize.com>",
+  "license": "MIT",
+  "homepage": "#readme"
 }
