@@ -1,6 +1,5 @@
 {
-  "_from": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.9",
-  "_id": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.9",
+  "_from": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.11",
   "_inBundle": false,
   "_integrity": "sha512-qUS1FN0rpsNdaCNKoOe5kXivwO2s71n9JTe7vmWchUYncIi9lOkPQ9HeptmCEPMKFMJs2kSPwXGiAyJDSRrvoA==",
   "_location": "/@iotize/cordova-plugin-iotize-ble",
@@ -8,26 +7,23 @@
   "_requested": {
     "type": "version",
     "registry": true,
-    "raw": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.9",
+    "raw": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.11",
     "name": "@iotize/cordova-plugin-iotize-ble",
     "escapedName": "@iotize%2fcordova-plugin-iotize-ble",
     "scope": "@iotize",
-    "rawSpec": "1.1.0-alpha.9",
+    "rawSpec": "1.1.0-alpha.11",
     "saveSpec": null,
-    "fetchSpec": "1.1.0-alpha.9"
+    "fetchSpec": "1.1.0-alpha.11"
   },
   "_requiredBy": [
     "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/@iotize/cordova-plugin-iotize-ble/-/cordova-plugin-iotize-ble-1.1.0-alpha.9.tgz",
+  "_resolved": "https://registry.npmjs.org/@iotize/cordova-plugin-iotize-ble/-/cordova-plugin-iotize-ble-1.1.0-alpha.11.tgz",
   "_shasum": "d614278a7bf37819ecdac544919b25a1bb400f3c",
-  "_spec": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.9",
+  "_spec": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.11",
   "_where": "C:\\Users\\geraud.vercasson\\cordova\\scriptrunner.ionic",
-  "author": {
-    "name": "IoTize SAS",
-    "email": "support@iotize.com"
-  },
+  "author": "IoTize SAS <support@iotize.com>",
   "license": "MIT",
   "main": "./dist/index.js",
   "name": "@iotize/cordova-plugin-iotize-ble",
@@ -53,7 +49,7 @@
     "@iotize/device-client.js": "^0.0.1-alpha.48",
     "rxjs": "^6.0.0"
   },
-  "homepage": "http://#readme",
+  "homepage": "#readme",
   "keywords": [
     "bluetooth",
     "BLE",
@@ -80,5 +76,5 @@
     "clean": "rm -rf ./dist/*",
     "prepare": "npm run build"
   },
-  "version": "1.1.0-alpha.10"
+  "version": "1.1.0-alpha.11"
 }
