@@ -19,8 +19,8 @@ The plugin provides a simple [JavaScript API](#api) for iOS, Android and Windows
 
 ### Cordova
 
-    $ cordova plugin add cordova-plugin-iotize-ble
-    $ ionic cordova plugin add cordova-plugin-iotize-ble
+    $ cordova plugin add @iotize/cordova-plugin-iotize-ble
+    $ ionic cordova plugin add @iotize/cordova-plugin-iotize-ble
     for iOS since the plugin is in swift language, before using iotize-ble plugin , cordova-plugin-add-swift-support:https://github.com/akofman/cordova-plugin-add-swift-support should be installed. 
 
 # API
