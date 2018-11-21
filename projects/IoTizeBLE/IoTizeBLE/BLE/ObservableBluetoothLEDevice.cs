@@ -621,18 +621,25 @@ namespace IoTizeBLE
 
                     if (BluetoothLEDevice != null)
                     {
+                        SPPOverLECharacteristicObs.ResponseEvent -= Item_ResponseEvent;
+                        foreach (var service in Services)
+                        {
+                            service.Service.Dispose();
+                        }
+                        Services.Clear();
+                        SPPOverLECharacteristic = null;
+                        ServiceCount = 0;
+
                         BluetoothLEDevice.ConnectionStatusChanged -= BluetoothLEDevice_ConnectionStatusChanged;
                         BluetoothLEDevice.NameChanged -= BluetoothLEDevice_NameChanged;
                         BluetoothLEDevice.Dispose();
                         BluetoothLEDevice = null;
                         IsConnected = false;
                         IsPaired = false;
-                        Name = "";
-                        Services.Clear();
-                        SPPOverLECharacteristicObs.ResponseEvent -= Item_ResponseEvent;
-                        Services.Clear();
-                        SPPOverLECharacteristic = null;
-                        ServiceCount = 0;
+                        Name = "";                        
+
+
+                   
                     }
 
                 }

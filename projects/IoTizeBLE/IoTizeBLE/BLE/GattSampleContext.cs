@@ -311,11 +311,16 @@ namespace IoTizeBLE
                 var bluetooth = (await Radio.GetRadiosAsync()).FirstOrDefault(radio => radio.Kind == RadioKind.Bluetooth);
                 if (bluetooth != null && bluetooth.State != RadioState.On)
                 {
+                    Log.WriteLine("~~~BlueTooth is Off");
                     IsBluetoothOn = false;
 
                 }
                 else
+                {
+                    Log.WriteLine("~~~BlueTooth is Off");
                     IsBluetoothOn = true;
+                }
+                    
 
             }
             else
