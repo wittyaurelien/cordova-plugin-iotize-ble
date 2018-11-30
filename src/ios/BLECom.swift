@@ -279,8 +279,13 @@ struct IoTizeBleError: Error {
     }
     
     @objc(isConnected:)
-    func isConnected() -> Bool {
-        return bleController.isConnected()
+    func isConnected(command: CDVInvokedUrlCommand) {
+        
+        let error: Bool ;
+        
+        error = bleController.isConnected()
+        self.sendSuccess(command: command, result: error)
+        
     }
 
     func isReady() -> Bool {

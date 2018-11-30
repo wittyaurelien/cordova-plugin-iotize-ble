@@ -193,10 +193,10 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             }
 
             //callback without error
-            if (connectionChangeCompletion){
+        
                 connectionChangeCompletion!(nil)
                 connectionChangeCompletion = nil
-            }            
+                    
         }
     }
     
