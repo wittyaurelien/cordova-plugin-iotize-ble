@@ -26,11 +26,11 @@ export class BLEComProtocol extends QueueComProtocol {
         }).join(" "));
     }
 
-   private deviceName: string = "";
+   private deviceId: string = "";
 
-   constructor(name: string) {
+   constructor(deviceId: string) {
        super();
-       this.deviceName = name;
+       this.deviceId = deviceId;
        this.options.connect.timeout = 60000;
    }
 
@@ -39,7 +39,7 @@ export class BLEComProtocol extends QueueComProtocol {
         this.log('info', '_connect', options);
         return from(this._cordovaCallToPromise(
             iotizeBLE.connect,
-            this.deviceName
+            this.deviceId
         ));
     }
 
@@ -47,7 +47,7 @@ export class BLEComProtocol extends QueueComProtocol {
     _disconnect(options?: ComProtocolDisconnectOptions): Observable<any> {
         return from(this._cordovaCallToPromise(
             iotizeBLE.disConnect,
-            this.deviceName
+            this.deviceId
         ));
     }
 
@@ -62,7 +62,7 @@ export class BLEComProtocol extends QueueComProtocol {
     send(data: Uint8Array, options ?: ComProtocolSendOptions): Observable<any>{
         let promise = this._cordovaCallToPromise<string>(
                 iotizeBLE.send,
-                this.deviceName,
+                this.deviceId,
                 FormatHelper.toHexString(data)
             )
             .then((hexString: string) => FormatHelper.hexStringToBuffer(hexString));
