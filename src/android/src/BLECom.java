@@ -43,6 +43,7 @@ public class BLECom extends CordovaPlugin {
     private static final String START_SCAN = "startScan";
     private static final String STOP_SCAN = "stopScan";
     private static final String IS_ENABLED = "isEnabled";
+    private static final String CHECK_AVAILABLE = "checkAvailable";
     private static final String IS_CONNECTED  = "isConnected";
     private static final String ENABLE = "enable";
 
@@ -118,6 +119,7 @@ public class BLECom extends CordovaPlugin {
                     String hexString = argsHelper.getString(1);
                     this.sendRequest(pluginResponse, deviceId, hexString);
                     break;
+                case CHECK_AVAILABLE:
                 case IS_ENABLED:
                     pluginResponse.success(bluetoothAdapter.isEnabled());
 
