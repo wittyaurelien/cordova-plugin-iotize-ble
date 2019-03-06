@@ -1,5 +1,5 @@
 {
-  "_from": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.17",
+  "_from": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.19",
   "_inBundle": false,
   "_integrity": "sha512-qUS1FN0rpsNdaCNKoOe5kXivwO2s71n9JTe7vmWchUYncIi9lOkPQ9HeptmCEPMKFMJs2kSPwXGiAyJDSRrvoA==",
   "_location": "/@iotize/cordova-plugin-iotize-ble",
@@ -7,21 +7,21 @@
   "_requested": {
     "type": "version",
     "registry": true,
-    "raw": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.17",
+    "raw": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.19",
     "name": "@iotize/cordova-plugin-iotize-ble",
     "escapedName": "@iotize%2fcordova-plugin-iotize-ble",
     "scope": "@iotize",
-    "rawSpec": "1.1.0-alpha.17",
+    "rawSpec": "1.1.0-alpha.19",
     "saveSpec": null,
-    "fetchSpec": "1.1.0-alpha.17"
+    "fetchSpec": "1.1.0-alpha.19"
   },
   "_requiredBy": [
     "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/@iotize/cordova-plugin-iotize-ble/-/cordova-plugin-iotize-ble-1.1.0-alpha.17.tgz",
+  "_resolved": "https://registry.npmjs.org/@iotize/cordova-plugin-iotize-ble/-/cordova-plugin-iotize-ble-1.1.0-alpha.19.tgz",
   "_shasum": "d614278a7bf37819ecdac544919b25a1bb400f3c",
-  "_spec": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.17",
+  "_spec": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.19",
   "_where": "C:\\Users\\geraud.vercasson\\cordova\\scriptrunner.ionic",
   "author": "IoTize SAS <support@iotize.com>",
   "license": "MIT",
@@ -72,9 +72,11 @@
     "url": "git+ssh://git@bitbucket.org/iotize-solutions/device-com-ble.cordova.git"
   },
   "scripts": {
-    "build": "npm run clean && tsc -p ./tsconfig.json",
+    "build": "npm run build:ts && npm run build:webpack",
+    "build:ts": "tsc -p ./tsconfig.json",
+    "build:webpack": "webpack --config webpack.config.js",
     "clean": "rm -rf ./dist/*",
     "prepare": "npm run build"
   },
-  "version": "1.1.0-alpha.17"
+  "version": "1.1.0-alpha.19"
 }
