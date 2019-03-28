@@ -8,3 +8,6 @@ obj
 bin
 .idea
 dist
+.nyc_output
+src/android/.project
+src/android/.settings

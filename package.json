@@ -1,28 +1,5 @@
 {
-  "_from": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.20",
-  "_inBundle": false,
-  "_integrity": "sha512-qUS1FN0rpsNdaCNKoOe5kXivwO2s71n9JTe7vmWchUYncIi9lOkPQ9HeptmCEPMKFMJs2kSPwXGiAyJDSRrvoA==",
-  "_location": "/@iotize/cordova-plugin-iotize-ble",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "version",
-    "registry": true,
-    "raw": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.20",
-    "name": "@iotize/cordova-plugin-iotize-ble",
-    "escapedName": "@iotize%2fcordova-plugin-iotize-ble",
-    "scope": "@iotize",
-    "rawSpec": "1.1.0-alpha.20",
-    "saveSpec": null,
-    "fetchSpec": "1.1.0-alpha.20"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/@iotize/cordova-plugin-iotize-ble/-/cordova-plugin-iotize-ble-1.1.0-alpha.20.tgz",
-  "_shasum": "d614278a7bf37819ecdac544919b25a1bb400f3c",
-  "_spec": "@iotize/cordova-plugin-iotize-ble@1.1.0-alpha.20",
-  "_where": "C:\\Users\\geraud.vercasson\\cordova\\scriptrunner.ionic",
+  "version": "1.1.0-alpha.20",
   "author": "IoTize SAS <support@iotize.com>",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -42,8 +19,14 @@
     "@iotize/device-client.js": "0.0.1-alpha.57",
     "@types/cordova": "0.0.34",
     "@types/p-queue": "^2.3.1",
+    "compression-webpack-plugin": "^2.0.0",
     "rxjs": "^6.0.0",
-    "typescript": "^3.1.3"
+    "typescript": "^3.1.3",
+    "uglifyjs-webpack-plugin": "^2.1.2",
+    "webpack": "^4.29.6",
+    "webpack-bundle-analyzer": "^3.1.0",
+    "webpack-cli": "^3.3.0",
+    "webpack-rxjs-externals": "^2.0.0"
   },
   "peerDependencies": {
     "@iotize/device-client.js": "^0.0.1-alpha.57",
@@ -76,7 +59,7 @@
     "build:ts": "tsc -p ./tsconfig.json",
     "build:webpack": "webpack --config webpack.config.js",
     "clean": "rm -rf ./dist/*",
-    "prepare": "npm run build"
-  },
-  "version": "1.1.0-alpha.20"
+    "prepare": "npm run build",
+    "test": "echo `no test yet`"
+  }
 }
