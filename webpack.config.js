@@ -21,16 +21,16 @@ module.exports = {
     mode: 'production',
     optimization: {
       minimize: true,
-      minimizer: [new UglifyJsPlugin({
-        include: /\.min\.js$/
-      })]
+    //   minimizer: [new UglifyJsPlugin({
+    //     include: /\.min\.js$/
+    //   })]
     },
     plugins: [
         // new webpack.optimize.DedupePlugin(), 
         new CompressionPlugin(),
         new BundleAnalyzerPlugin({
             analyzerMode: 'static',
-            openAnalyzer: true,
+            openAnalyzer: false,
             reportFilename: './bundle-analyzer.html'
         })
     ], 
