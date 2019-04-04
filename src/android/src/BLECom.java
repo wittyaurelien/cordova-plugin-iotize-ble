@@ -175,22 +175,8 @@ public class BLECom extends CordovaPlugin {
 
     }
 
-    private boolean locationServicesEnabled() {
-        int locationMode = 0;
-        try {
-            locationMode = Settings.Secure.getInt(cordova.getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
-        } catch (Settings.SettingNotFoundException e) {
-            LOG.e(TAG, "Location Mode Setting Not Found", e);
-        }
-        return (locationMode > 0);
-    }
-
-
     private void startScan(PluginResponse pluginResponse) {
-        if (!locationServicesEnabled()) {
-            pluginResponse.error(new BLEComError(BLEComError.Code.LOCATION_SERVICE_DISABLED, "Location service must be enabled to scan low energy device"));
-            return;
-        }
+
         if (pluginResponseDiscoverDevice != null && pluginResponseDiscoverDevice != pluginResponse){
             Log.w(TAG, "Scan is already started...");
         }
