@@ -201,7 +201,7 @@ struct IoTizeBleError: Error {
                 }
                 else {
                     //print("##> Sending Connected Ok")
-                    self.sendSuccess(command: command, result: "Ok")
+                    self.sendSuccessWithResponse(command: command, result: "Ok") // keep callback
                 }
             }
         })
