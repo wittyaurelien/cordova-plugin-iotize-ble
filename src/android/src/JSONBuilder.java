@@ -28,14 +28,9 @@ public class JSONBuilder {
 
             json.put("name", bluetoothDevice.getName());
             json.put("address", bluetoothDevice.getAddress());
-            json.put("type", bluetoothDevice.getType());
-            //        if (advertisingData != null) {
-            //            json.put("advertising", byteArrayToJSON(advertisingData));
-            //        }
-            // TODO real RSSI if we have it, else
-            //        if (advertisingRSSI != FAKE_PERIPHERAL_RSSI) {
-            //            json.put("rssi", advertisingRSSI);
-            //        }
+            // json.put("type", bluetoothDevice.getType());
+            json.put("rssi", device.getRssi());
+
             return json;
         }
         catch (JSONException e) {
