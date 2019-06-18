@@ -270,6 +270,9 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     
     
     func checkState(completion: @escaping Completion){
-        blestateChangeCompletion = completion    
+        blestateChangeCompletion = completion
+        if self.centralManager?.state != .unknown {
+            self.centralManagerDidUpdateState(self.centralManager)
+        }
     }
 }

@@ -26,7 +26,6 @@ export class BLEScanner implements DeviceScanner {
     private devices$: Subject<DiscoveredDeviceType>;
 
     constructor() {
-        console.log('Hello BleComProvider Provider');
         this.devices$ = new Subject();
     }
 
