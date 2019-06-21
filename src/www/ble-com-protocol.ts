@@ -6,7 +6,7 @@
 //
 
 import { QueueComProtocol } from '@iotize/device-client.js/protocol/impl/queue-com-protocol';
-import { ComProtocolConnectOptions, ComProtocolDisconnectOptions, ComProtocolSendOptions } from '@iotize/device-client.js/protocol/api/com-protocol.interface';
+import { ComProtocolConnectOptions, ComProtocolDisconnectOptions, ComProtocolSendOptions, ComProtocolOptions } from '@iotize/device-client.js/protocol/api/com-protocol.interface';
 import { FormatHelper } from '@iotize/device-client.js/core/format/format-helper';
 import { from, Observable, Subscriber, Subscription, Subject } from 'rxjs';
 import { first } from "rxjs/operators";
@@ -34,10 +34,14 @@ export class BLEComProtocol extends QueueComProtocol {
 
    private deviceId: string = "";
 
-   constructor(deviceId: string) {
+   constructor(deviceId: string, comProtocolOptions?: ComProtocolOptions) {
        super();
        this.deviceId = deviceId;
-       this.options.connect.timeout = 60000;
+       if (comProtocolOptions) {
+           this.options = comProtocolOptions;
+       } else {
+           this.options.connect.timeout = 60000;
+       }
    }
 
 
