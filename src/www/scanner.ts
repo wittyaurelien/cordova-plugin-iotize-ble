@@ -8,6 +8,7 @@
 import { Subject, Observable } from 'rxjs';
 import { DeviceScanner, DeviceScannerOptions } from '@iotize/device-client.js/device/scanner/device-scanner';
 import { CordovaInterface } from './cordova-interface';
+import { debug } from './logger';
 
 declare var iotizeBLE: CordovaInterface;
 
@@ -35,9 +36,9 @@ export class BLEScanner implements DeviceScanner {
     start(options?: DeviceScannerOptions) {
         if (options.timeout){
         }
-        console.log("Start Scanning ...");
+        debug("Start Scanning ...");
         iotizeBLE.startScan((result) => {
-            console.log(result);
+            debug(result);
             if (result == 'Ok') {
                 this.isScanning = true;
                 return;
@@ -47,7 +48,7 @@ export class BLEScanner implements DeviceScanner {
         }, (error) => {
             iotizeBLE
                 .getLastError((lasterror) => {
-                    console.log("error " + lasterror);
+                    debug("error " + lasterror);
                 }, (err) => {
                     console.error(error);
                 });
@@ -67,14 +68,14 @@ export class BLEScanner implements DeviceScanner {
      * 
      */
     stop() {
-        console.log("Stop Scanning ...");
+        debug("Stop Scanning ...");
         iotizeBLE
             .stopScan((result) => {
-                console.log(result);
+                debug(result);
                 this.isScanning = false;
             },
             (error) => {
-                console.log("failed : " + error);
+                debug("failed : " + error);
             });
     }
 }

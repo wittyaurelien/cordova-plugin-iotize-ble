@@ -11,24 +11,13 @@ import { FormatHelper } from '@iotize/device-client.js/core/format/format-helper
 import { from, Observable, Subscriber, Subscription, Subject } from 'rxjs';
 import { first } from "rxjs/operators";
 import { CordovaInterface } from './cordova-interface';
+import { debug } from './logger';
 
 declare var iotizeBLE: CordovaInterface;
 
 export class BLEComProtocol extends QueueComProtocol {
     private _connectionStateSubject?: Subject<any>;
     _connectionChangeObservable: any;
-
-    log(level: 'info' | 'error' | 'debug', ...args: any[]): void {
-        console[level](level.toUpperCase() + " [IoTizeBLEProtocol] | " + args.map(entry => {
-            if (typeof entry === 'object'){
-                return JSON.stringify(entry);
-            }
-            else {
-                return entry;
-            }
-        }).join(" "));
-    }
-
     private _connectionStateSubscription?: Subscription;
     private _connectionObservable?: Observable<any>;
 
@@ -42,7 +31,7 @@ export class BLEComProtocol extends QueueComProtocol {
 
 
     _connect(options?: ComProtocolConnectOptions): Observable<any> {
-        this.log('info', '_connect', options);
+        debug('_connect', options);
         // return from(this._cordovaCallToPromise(
         //     iotizeBLE.connect,
         //     this.deviceId
@@ -55,11 +44,11 @@ export class BLEComProtocol extends QueueComProtocol {
         this._connectionStateSubscription = this._connectionStateSubject.subscribe((val) => this.setConnectionState(val));
 
         const onConnect = (val: any) => {
-            this.log('debug', '_connect observable: onConnect');
+            debug('_connect observable: onConnect');
             this._connectionStateSubject.next(val);
         };
         const onError = (error: any) => {
-            this.log('debug', '_connect observable: onError');
+            debug('_connect observable: onError');
             this._connectionStateSubject.error(error);
         };
         iotizeBLE.connect(this.deviceId, onConnect ,onError);
@@ -97,16 +86,17 @@ export class BLEComProtocol extends QueueComProtocol {
 
     protected _cordovaCallToPromise<T>(cordovaFct: (...args: any[]) => any, ...args: any[]): Promise<T>{
         if (!cordovaFct){
-            this.log('error', 'INTERNAL ERROR UNKOWN CORDOVA FUNCTION');
+            console.warn('INTERNAL ERROR UNKOWN CORDOVA FUNCTION');
+            return;
         }
-        this.log('debug', 'Call to ', cordovaFct.name, ...args);
+        debug('Call to ', cordovaFct.name, ...args);
         return new Promise<T>((resolve: any, reject: any) => {
             args.push((result: any) => {
-                this.log('debug', 'success handler ', result);
+                debug('success handler ', result);
                 resolve(result);
             });
             args.push((err: any) => {
-                this.log('error', 'error handler ', err);
+                debug('error handler ', err);
                 reject(err);
             });
 
@@ -119,11 +109,11 @@ export class BLEComProtocol extends QueueComProtocol {
 
     //     return Observable.create((subscriber: Subscriber<any>) => {
     //         const onConnectionChange = (val: any) => {
-    //             this.log('debug', '_connect observable: onConnect');
+    //             debug('_connect observable: onConnect');
     //             subscriber.next(val);
     //         };
     //         const onError = (error: any) => {
-    //             this.log('debug', '_connect observable: onError');
+    //             debug('_connect observable: onError');
     //             subscriber.error(error);
     //         };
     //         iotizeBLE.connectionChangeListener(onConnectionChange ,onError);
