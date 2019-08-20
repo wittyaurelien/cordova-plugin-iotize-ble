@@ -8,13 +8,13 @@ const webpackRxjsExternals = require('webpack-rxjs-externals');
 
 module.exports = {
     entry: {
-        'cordova-plugin-iotize-ble': './dist/index.js',
-        'cordova-plugin-iotize-ble.min': './dist/index.js',
+        'cordova-plugin-iotize-ble': './index.js',
+        'cordova-plugin-iotize-ble.min': './index.js',
     },
     devtool: "source-map",
     output: {
         filename: `[name].js`,
-        path: resolve(__dirname, 'dist', 'dist'),
+        path: resolve(__dirname, 'dist'),
         library: LIB_NAME,
 		libraryTarget: "umd"
     },

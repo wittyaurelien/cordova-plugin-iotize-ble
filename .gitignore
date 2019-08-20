@@ -11,3 +11,6 @@ dist
 .nyc_output
 src/android/.project
 src/android/.settings
+/*.js
+/*.js.map
+*.d.ts
