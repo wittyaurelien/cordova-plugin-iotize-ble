@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<plugin
-    xmlns="http://apache.org/cordova/ns/plugins/1.0" 
-    id="cordova-plugin-iotize-ble"
-    version="1.1.0-alpha.28">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.0-alpha.28">
 
-    <name>cordova-plugin-iotize-ble</name>
-    <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
-    <license>MIT</license>
-    <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
+  <name>cordova-plugin-iotize-ble</name>
+  <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
+  <license>MIT</license>
+  <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
 
-    <js-module src="www/iotize-ble.js" name="iotizeBLE">
-        <clobbers target="iotizeBLE" />
-    </js-module>
+  <js-module src="www/iotize-ble.js" name="iotizeBLE">
+    <clobbers target="iotizeBLE" />
+  </js-module>
 
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
@@ -30,11 +27,11 @@
     <resource-file src="src/android/libs/iotize-device-api-release.aar" target="../../libs/iotize-device-api.aar" />
     <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" />
     <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" /> -->
-      <config-file target="AndroidManifest.xml" parent="/manifest">
-          <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-          <uses-permission android:name="android.permission.BLUETOOTH"/>
-          <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-      </config-file>
+    <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+      <uses-permission android:name="android.permission.BLUETOOTH"/>
+      <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    </config-file>
   </platform>
 
   <platform name="windows">
@@ -47,18 +44,22 @@
       <DeviceCapability Name="radios"/>
     </config-file>
   </platform>
-  
+
   <platform name="ios">
-  <config-file target="config.xml" parent="/*">
-    <feature name="BLECom">
-      <param name="ios-package" value="BLECom" />
-    </feature>
-  </config-file>
-  <source-file src="src/ios/BLECom.swift" />
-  <source-file src="src/ios/BLEManager.swift" />
-  <source-file src="src/ios/BLEPeripheral.swift" />
-  <source-file src="src/ios/CBPeripheralConverter.swift" />
-  <source-file src="src/ios/Queue.swift" />
+    <config-file target="config.xml" parent="/*">
+      <feature name="BLECom">
+        <param name="ios-package" value="BLECom" />
+      </feature>
+    </config-file>
+    <source-file src="src/ios/BLECom.swift" />
+    <source-file src="src/ios/BLEManager.swift" />
+    <source-file src="src/ios/BLEPeripheral.swift" />
+    <source-file src="src/ios/CBPeripheralConverter.swift" />
+    <source-file src="src/ios/Queue.swift" />
+
+    <config-file target="*-Info.plist" parent="NSBluetoothAlwaysUsageDescription">
+      <string>Communicate with IoTize BLE Devices</string>
+    </config-file>
   </platform>
 
 </plugin>
