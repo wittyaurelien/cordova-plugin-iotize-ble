@@ -5,77 +5,120 @@
 //  device-com-ble.cordova BLE Cordova Plugin
 //
 
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, BehaviorSubject } from 'rxjs';
 import { DeviceScanner, DeviceScannerOptions } from '@iotize/device-client.js/device/scanner/device-scanner';
 import { CordovaInterface } from './cordova-interface';
 import { debug } from './logger';
+import { CordovaBLEScanResult } from './definitions';
 
 declare var iotizeBLE: CordovaInterface;
-
-export interface DiscoveredDeviceType {
-    name: string;
-    address: string;
-    rssi?: number;
-}
 
 /**
  * 
  */
-export class BLEScanner implements DeviceScanner {
+export class BLEScanner implements DeviceScanner<CordovaBLEScanResult> {
 
-    public isScanning: boolean = false;
-    private devices$: Subject<DiscoveredDeviceType>;
+    private _results = new BehaviorSubject<CordovaBLEScanResult[]>([]);
+    private _scanning$ = new BehaviorSubject<boolean>(false);
 
     constructor() {
-        this.devices$ = new Subject();
     }
 
-    /**
-     * Launches the scan for BLE devices
-     */
-    start(options?: DeviceScannerOptions) {
-        if (options.timeout){
-        }
-        debug("Start Scanning ...");
-        iotizeBLE.startScan((result) => {
-            debug(result);
-            if (result == 'Ok') {
-                this.isScanning = true;
-                return;
-            }
-            this.devices$.next(result);
-            // this.devices$.next(JSON.parse(result));
-        }, (error) => {
-            iotizeBLE
-                .getLastError((lasterror) => {
-                    debug("error " + lasterror);
-                }, (err) => {
-                    console.error(error);
-                });
-        });
-        return this.devices$;
+    get scanning(): Observable<boolean> {
+        return this._scanning$.asObservable();
+    }
+
+    get isScanning(): boolean {
+        return this._scanning$.value;
     }
 
     /**
      * Gets the observable on the devices$ Subject
-     * @return {Observable<DiscoveredDeviceType>}
+     * @return
      */
-    devicesObservable(): Observable<DiscoveredDeviceType> {
-        return this.devices$.asObservable();
+    get results(): Observable<CordovaBLEScanResult[]> {
+        return this._results.asObservable();
+    }
+
+
+    /**
+     * Launches the scan for BLE devices
+     */
+    start(options?: DeviceScannerOptions): Promise<void> {
+        debug("Start Scanning ...");
+        this._scanning$.next(true);
+        return new Promise<void>((resolve, reject) => {
+            iotizeBLE.startScan((result) => {
+                debug(result);
+                if (result == 'Ok') {
+                    resolve();
+                    return;
+                }
+                this.addOrRefreshDevice(result);
+            }, (error) => {
+                iotizeBLE
+                    .getLastError((lasterror) => {
+                        debug("let ble error " + lasterror);
+                    }, (err) => {
+                        debug('cannot get last ble error: ', err);
+                    });
+                reject(error);
+                this._scanning$.next(false);
+            });
+        });
     }
 
     /**
      * 
      */
-    stop() {
+    stop(): Promise<void> {
         debug("Stop Scanning ...");
-        iotizeBLE
-            .stopScan((result) => {
-                debug(result);
-                this.isScanning = false;
-            },
-            (error) => {
-                debug("failed : " + error);
+        return new Promise<void>((resolve, reject) => {
+            iotizeBLE
+                .stopScan((result) => {
+                    this._scanning$.next(false);
+                    resolve();
+                },
+                    (error) => {
+                        this._scanning$.next(false);
+                        reject(error);
+                    });
+        });
+    }
+
+    /**
+     * Returns true if this scanner is available
+     */
+    checkAvailable(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            iotizeBLE.checkAvailable((result) => {
+                debug('checkAvailable result', result);
+                resolve();
+            }, (error) => {
+                reject(error);
             });
+        })
+    }
+
+    private get devices() {
+        return this._results.value;
+    }
+
+    private addOrRefreshDevice(newDevice: CordovaBLEScanResult) {
+        let storedDeviceIndex = this.devices.findIndex((entry) => entry.address == newDevice.address);
+        if (storedDeviceIndex >= 0) {
+            let storedDevice = this.devices[storedDeviceIndex];
+            if (storedDevice.name != newDevice.name || storedDevice.rssi != newDevice.rssi) {
+                debug(`Updating device at index ${storedDeviceIndex}, name=${storedDevice.name} with rssi=${storedDevice.rssi}`);
+                this.devices[storedDeviceIndex] = newDevice;
+                // this.devices = [...this.devices];
+                this._results.next(this.devices);
+            }
+        }
+        else {
+            debug(`Adding new device name=${newDevice.name} with rssi=${newDevice.rssi}`);
+            this.devices.push(newDevice);
+            this._results.next(this.devices);
+        }
     }
 }
