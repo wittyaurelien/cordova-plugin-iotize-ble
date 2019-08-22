@@ -11,3 +11,7 @@ projects
 README-DEV.md
 node_modules
 src/www
+ci-config.json
+*.tgz
+webpack.config.js
+tsconfig.json

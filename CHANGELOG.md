@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.1.0-alpha.30"></a>
+- Improved BLE device Scanner
+
 <a name="1.1.0-alpha.23"></a>
 - fix: iOS : CheckAvailable now uses actual bluetooth manager state
 
