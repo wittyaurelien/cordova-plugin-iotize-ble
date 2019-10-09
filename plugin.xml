@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.0-alpha.31">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.0-alpha.32">
 
   <name>cordova-plugin-iotize-ble</name>
   <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
   <license>MIT</license>
   <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
+
+  <dependency id="cordova-plugin-add-swift-support"/>
 
   <js-module src="www/iotize-ble.js" name="iotizeBLE">
     <clobbers target="iotizeBLE" />
