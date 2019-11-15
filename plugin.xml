@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.0-alpha.33">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.0-alpha.34">
 
   <name>cordova-plugin-iotize-ble</name>
   <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
   <license>MIT</license>
   <keywords>bluetooth, BLE, bluetooth low energy, TapNLink, IoTize</keywords>
 
-  <dependency id="cordova-plugin-add-swift-support"/>
 
   <js-module src="www/iotize-ble.js" name="iotizeBLE">
     <clobbers target="iotizeBLE" />
@@ -24,11 +23,6 @@
     <source-file src="src/android/src/JSONBuilder.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/ArgsHelper.java" target-dir="src/com/iotize/plugin"/>
     <source-file src="src/android/src/PluginResponse.java" target-dir="src/com/iotize/plugin"/>
-    <!-- <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
-    <resource-file src="src/android/libs/iotize-core-release.aar" target="../../libs/iotize-core.aar" />
-    <resource-file src="src/android/libs/iotize-device-api-release.aar" target="../../libs/iotize-device-api.aar" />
-    <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" />
-    <resource-file src="src/android/libs/iotize-device-com-ble-release.aar" target="../../libs/iotize-device-com-ble.aar" /> -->
     <config-file target="AndroidManifest.xml" parent="/manifest">
       <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
       <uses-permission android:name="android.permission.BLUETOOTH"/>
@@ -48,6 +42,7 @@
   </platform>
 
   <platform name="ios">
+    <dependency id="cordova-plugin-add-swift-support"/>
     <config-file target="config.xml" parent="/*">
       <feature name="BLECom">
         <param name="ios-package" value="BLECom" />

@@ -302,14 +302,22 @@ public class BLECom extends CordovaPlugin {
             peripherals.put(macAddress, peripheral);
         }
         BLEProtocol finalPeripheral = peripheral;
+        peripheral.addOnConnectionStatusChangeListener(
+                (newConnectionState, oldConnectionState) -> {
+                    LOG.d(TAG, "Old State: " + oldConnectionState + ", New State: " + newConnectionState);
+                    if (newConnectionState != oldConnectionState) {
+                        pluginResponse.newResult(newConnectionState.toString());
+                    }
+                }
+            );
         if (finalPeripheral.isConnected()){
-            pluginResponse.success();
+            pluginResponse.newResult("CONNECTED");
             return;
         }
         executeAsync(() -> {
             try {
                 finalPeripheral.connect();
-                pluginResponse.success();
+                pluginResponse.newResult("CONNECTED");
             } catch(Exception e) {
                 pluginResponse.error(new BLEComError(BLEComError.Code.CONNECTION_ERROR, e));
             }
@@ -357,5 +365,16 @@ public class BLECom extends CordovaPlugin {
             enableBluetoothCallback = null;
         }
     }
-
+    private void setConnectionStateCallback(PluginResponse pluginResponse, String macAddress) {
+        BLEProtocol peripheral = peripherals.getIfExists(macAddress);
+        if (peripheral == null) {
+            pluginResponse.error(new BLEComError(BLEComError.Code.ILLEGAL_ACTION, "unregistered peripheral"));
+            return;
+        }
+        peripheral.addOnConnectionStatusChangeListener(
+                (oldConnectionState, newConnectionState) -> {
+                    LOG.d(TAG, "Old State: " + oldConnectionState + ", New State: " + newConnectionState);
+                    pluginResponse.newResult(newConnectionState.toString());
+                });
+    }
 }

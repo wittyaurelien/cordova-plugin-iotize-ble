@@ -11,7 +11,7 @@ import CoreBluetooth
 typealias Completion = (IoTizeBleError?) -> ()
 
 //Callback type, methods with returning values
-typealias CompletionWithResponse = (Any , IoTizeBleError?) -> ()
+typealias CompletionWithResponse = (Any? , IoTizeBleError?) -> ()
 
 //Central manager handling devices and ble callbacks.
 class BLEManager: NSObject, CBCentralManagerDelegate
@@ -24,8 +24,8 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     
     var discoveredPeripherals = [CBPeripheral]()        //list of discovered devices
     var blestateChangeCompletion: Completion?           //callback called when the ble state is changing
-    var connectionChangeCompletion: Completion?         //callback called when the ble connection states is changing
-    var disconnectionErrorCompletion: Completion?       //callback called when a device is disconnected erroneously
+    var connectionChangeCompletion: CompletionWithResponse?         //callback called when the ble connection states is changing
+    var disconnectionCompletion: Completion?       //callback called when a device is disconnected erroneously
     var discoveryCompletion: CompletionWithResponse?    //callback called when a new device is discovered
     
     //currently connected device
@@ -39,7 +39,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         //Initializations
         blestateChangeCompletion = nil
         connectionChangeCompletion = nil
-        disconnectionErrorCompletion = nil
+        disconnectionCompletion = nil
         connectedDevice = nil
         discoveryCompletion = nil
     }
@@ -88,7 +88,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     }
     
     // Connection to a device using its UUID. ios GATT uses UUID in spite of MAC address
-    func connectWithUUID( device: String, completion: @escaping Completion){
+    func connectWithUUID( device: String, completion: @escaping CompletionWithResponse){
         print("--> Start Connecting with UUID")
         
         //stop scanning first
@@ -96,7 +96,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         
         //save callback methods
         connectionChangeCompletion = completion
-        disconnectionErrorCompletion = completion
+//        disconnectionErrorCompletion = completion
         
         //in ios the device should be scanned in order 
         //to enable connection
@@ -120,7 +120,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         print("--> Start Disconnecting")
 
         //save callback method 
-        connectionChangeCompletion = completion
+        //connectionChangeCompletion = completion
         
         if ( connectedDevice != nil ){
             if connectedDevice!.bleDevice != nil {
@@ -194,8 +194,8 @@ class BLEManager: NSObject, CBCentralManagerDelegate
 
             //callback without error
         
-                connectionChangeCompletion!(nil)
-                connectionChangeCompletion = nil
+                connectionChangeCompletion!("CONNECTED", nil)
+//                connectionChangeCompletion = nil
                     
         }
     }
@@ -207,7 +207,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         
         //callback with error
         if ( connectionChangeCompletion != nil){
-            connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
+            connectionChangeCompletion!(nil, IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
             connectionChangeCompletion = nil
         }
         connectedDevice = nil
@@ -218,20 +218,20 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     func centralManager (_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?){
         
         print("### Did disconnect from device: \(String(describing: peripheral.name))")
-               
+            connectionChangeCompletion!("DISCONNECTED", nil)
         //callback without error, if we have requested this disconnection
-        if ( connectionChangeCompletion != nil){
-            connectionChangeCompletion!(nil)
+        if ( disconnectionCompletion != nil){
+            disconnectionCompletion!(nil)
+            disconnectionCompletion = nil
             connectionChangeCompletion = nil
             return
         }
         
         // Unwanted disconnection (e.g. peripheral out of range or powered off)
-        if (disconnectionErrorCompletion != nil) {
-            print("### Did Unwanted disconnection from device: \(String(describing: peripheral.name))")       
-            disconnectionErrorCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
-            disconnectionErrorCompletion = nil
-        } 
+//        if (connectionChangeCompletion != nil) {
+//            print("### Did Unwanted disconnection from device: \(String(describing: peripheral.name))")
+//            connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
+//        }
 
         connectedDevice = nil
     }

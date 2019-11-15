@@ -12,6 +12,7 @@ import { from, Observable, Subscriber, Subscription, Subject } from 'rxjs';
 import { first } from "rxjs/operators";
 import { CordovaInterface } from './cordova-interface';
 import { debug } from './logger';
+import { ConnectionState } from '@iotize/device-client.js/protocol/api';
 
 declare var iotizeBLE: CordovaInterface;
 
@@ -20,6 +21,7 @@ export class BLEComProtocol extends QueueComProtocol {
     _connectionChangeObservable: any;
     private _connectionStateSubscription?: Subscription;
     private _connectionObservable?: Observable<any>;
+    private _connectionStateCallBack?: (state:any) => void;
 
    private deviceId: string = "";
 
@@ -45,17 +47,21 @@ export class BLEComProtocol extends QueueComProtocol {
             this._connectionStateSubject = new Subject();
         }
 
-        this._connectionStateSubscription = this._connectionStateSubject.subscribe((val) => this.setConnectionState(val));
-
-        const onConnect = (val: any) => {
+        this._connectionStateCallBack = (state: string) => {
+            debug('_connectionState', state);
             debug('_connect observable: onConnect');
-            this._connectionStateSubject.next(val);
+            const connexionState = ConnectionState[state] as ConnectionState;
+            this.setConnectionState(connexionState);
+            if (state == 'CONNECTED') {
+                debug('_connectionStateSubject: next')
+                this._connectionStateSubject.next('OK');
+            }
         };
         const onError = (error: any) => {
             debug('_connect observable: onError');
             this._connectionStateSubject.error(error);
         };
-        iotizeBLE.connect(this.deviceId, onConnect ,onError);
+        iotizeBLE.connect(this.deviceId, this._connectionStateCallBack ,onError);
 
         return this._connectionStateSubject.pipe(
             first()
