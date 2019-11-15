@@ -191,7 +191,7 @@ struct IoTizeBleError: Error {
         let deviceUUID = command.arguments[0] as? String ?? ""
         
         bleController.connectWithUUID(device: deviceUUID, completion: {
-            (state: String?, error: IoTizeBleError?) -> () in
+            (state: Any?, error: IoTizeBleError?) -> () in
             
             DispatchQueue.main.async {
                 
@@ -201,10 +201,12 @@ struct IoTizeBleError: Error {
                 }
                 else {
                     //print("##> Sending Connected Ok")
-                    self.sendSuccessWithResponse(command: command, result: state!) // keep callback
+                    let _state = state as? String
+
+                    self.sendSuccessWithResponse(command: command, result: _state ?? "") // keep callback
                 }
             }
-            } as! CompletionWithResponse)
+            })
     }
     
     //Disconnect from a device using its name
