@@ -55,7 +55,7 @@
     "url": "git+ssh://git@bitbucket.org/iotize-solutions/device-com-ble.cordova.git"
   },
   "scripts": {
-    "build": "npm run build:ts && npm run build:webpack",
+    "build": "npm run clean && npm run build:ts && npm run build:webpack",
     "build:ts": "tsc -p ./tsconfig.json",
     "watch": "tsc -w -p ./tsconfig.json",
     "build:webpack": "webpack --config webpack.config.js",

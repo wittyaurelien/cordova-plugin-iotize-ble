@@ -21,6 +21,7 @@ import android.util.Log;
 import com.iotize.android.communication.protocol.ble.BLEProtocol;
 import com.iotize.android.communication.protocol.ble.DeviceManager;
 import com.iotize.android.communication.protocol.ble.scanner.BLEScanner;
+import com.iotize.android.core.buffer.ByteArrayHelper;
 import com.iotize.android.core.util.Helper;
 import com.iotize.android.device.api.device.scanner.IOnDeviceDiscovered;
 
@@ -57,7 +58,7 @@ public class BLECom extends CordovaPlugin {
     private PluginResponse pluginResponseDiscoverDevice;
     private PluginResponse permissionCallback;
     private BLEScanner scanner;
-    private IOnDeviceDiscovered<BLEScanner.BluetoothDeviceAdapter> onDeviceDiscoveredCallback;
+    private IOnDeviceDiscovered<BLEScanner.BLEScanData> onDeviceDiscoveredCallback;
 
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -139,7 +140,7 @@ public class BLECom extends CordovaPlugin {
                     cordova.startActivityForResult(this, intent, REQUEST_ENABLE_BLUETOOTH);
                     break;
                 default:
-                    throw new BLEComError(BLEComError.Code.ILLEGAL_ACTION, "Illegal action " + action);
+                    throw BLEComError.illegalAction("Illegal action " + action);
             }
             return true;
         }
@@ -148,10 +149,7 @@ public class BLECom extends CordovaPlugin {
             return false;
         }
         catch (Throwable err) {
-            pluginResponse.error(new BLEComError(
-                BLEComError.Code.UNKNOWN,
-                err
-            ));
+            pluginResponse.error(BLEComError.unknownError(err));
             return false;
         }
     }
@@ -160,15 +158,15 @@ public class BLECom extends CordovaPlugin {
         if (bluetoothAdapter == null) {
             Activity activity = cordova.getActivity();
             boolean hardwareSupportsBLE = activity.getApplicationContext()
-                                .getPackageManager()
-                                .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+                    .getPackageManager()
+                    .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
             if (!hardwareSupportsBLE) {
                 LOG.w(TAG, "This hardware does not support Bluetooth Low Energy.");
-                throw new BLEComError(BLEComError.Code.BLE_ADPATER_NOT_AVAILABLE);
+                throw BLEComError.bleNotAvailable();
             }
             BluetoothManager bluetoothManager = (BluetoothManager) activity.getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetoothManager == null){
-                throw new BLEComError(BLEComError.Code.BLE_ADPATER_NOT_AVAILABLE);
+                throw BLEComError.bleNotAvailable();
             }
             bluetoothAdapter = bluetoothManager.getAdapter();
         }
@@ -199,9 +197,9 @@ public class BLECom extends CordovaPlugin {
         Log.d(TAG, "initBLEScanner()");
         scanner = new BLEScanner(cordova.getContext());
         if (onDeviceDiscoveredCallback == null){
-            this.onDeviceDiscoveredCallback = new IOnDeviceDiscovered<BLEScanner.BluetoothDeviceAdapter>() {
+            this.onDeviceDiscoveredCallback = new IOnDeviceDiscovered<BLEScanner.BLEScanData>() {
                 @Override
-                public void onDeviceDiscovered(BLEScanner.BluetoothDeviceAdapter device) {
+                public void onDeviceDiscovered(BLEScanner.BLEScanData device) {
                     Log.d(TAG, "Device discovered: " + device);
                     if (pluginResponseDiscoverDevice != null) {
                         try {
@@ -209,10 +207,7 @@ public class BLECom extends CordovaPlugin {
                                     JSONBuilder.toJSONObject(device)
                             );
                         } catch (Throwable e) {
-                            pluginResponseDiscoverDevice.newResult(new BLEComError(
-                                    BLEComError.Code.INTERNAl_ERROR,
-                                    e
-                            ));
+                            pluginResponseDiscoverDevice.newResult(BLEComError.internalError(e));
                         }
                     }
                     else{
@@ -221,9 +216,15 @@ public class BLECom extends CordovaPlugin {
                 }
 
                 @Override
-                public void onScanFailed() {
-                    Log.w(TAG, "Scan failed");
+                public void onDeviceLost(BLEScanner.BLEScanData bleScanData) {
+                    Log.w(TAG, "Device lost" + bleScanData);
                 }
+
+                @Override
+                public void onScanFailed(Throwable throwable) {
+                    Log.w(TAG, "Scan failed", throwable);
+                }
+
             };
         }
         scanner.setOnDeviceDiscoveredCallback(this.onDeviceDiscoveredCallback);
@@ -272,7 +273,7 @@ public class BLECom extends CordovaPlugin {
                 byte[] response = peripheral.send(data);
                 pluginResponse.success(response);
             } catch (Exception e) {
-                pluginResponse.error(new BLEComError(BLEComError.Code.CONNECTION_ERROR, e));
+                pluginResponse.error(BLEComError.requestError(e, deviceId, data));
             }
         });
     }
@@ -287,7 +288,7 @@ public class BLECom extends CordovaPlugin {
             return Helper.HexStringToByteArray(hexString);
         }
         catch (Throwable ex){
-            throw new BLEComError(BLEComError.Code.ILLEGAL_ARGUMENT, "Should be a valid hexadecimal string");
+            throw BLEComError.illegalArgument("Should be a valid hexadecimal string");
         }
     }
 
@@ -295,23 +296,24 @@ public class BLECom extends CordovaPlugin {
         BLEProtocol peripheral = peripherals.getIfExists(macAddress);
         if (peripheral == null){
             if (!BluetoothAdapter.checkBluetoothAddress(macAddress)) {
-                throw new BLEComError(BLEComError.Code.INVALID_MAC_ADDRESS);
+                throw BLEComError.invalidMacAddress(macAddress);
             }
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(macAddress);
             peripheral = new BLEProtocol(cordova.getActivity(), device);
             peripherals.put(macAddress, peripheral);
         }
         BLEProtocol finalPeripheral = peripheral;
+        setConnectionStateCallback(pluginResponse, macAddress);
         if (finalPeripheral.isConnected()){
-            pluginResponse.success();
+            pluginResponse.newResult("CONNECTED");
             return;
         }
         executeAsync(() -> {
             try {
                 finalPeripheral.connect();
-                pluginResponse.success();
+                pluginResponse.newResult("CONNECTED");
             } catch(Exception e) {
-                pluginResponse.error(new BLEComError(BLEComError.Code.CONNECTION_ERROR, e));
+                pluginResponse.error(BLEComError.connectionError(e));
             }
         });
     }
@@ -358,4 +360,16 @@ public class BLECom extends CordovaPlugin {
         }
     }
 
+    private void setConnectionStateCallback(PluginResponse pluginResponse, String macAddress) {
+        BLEProtocol peripheral = peripherals.getIfExists(macAddress);
+        if (peripheral == null) {
+            pluginResponse.error(BLEComError.illegalAction( "unregistered peripheral"));
+            return;
+        }
+        peripheral.addOnConnectionStatusChangeListener(
+                (newConnectionState, oldConnectionState) -> {
+                    LOG.d(TAG, "Old State: " + oldConnectionState + ", New State: " + newConnectionState);
+                    pluginResponse.newResult(newConnectionState.toString());
+                });
+    }
 }
