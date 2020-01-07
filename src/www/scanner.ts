@@ -43,28 +43,36 @@ export class BLEScanner implements DeviceScanner<CordovaBLEScanResult> {
 
     /**
      * Launches the scan for BLE devices
+     * Throws if BLE is not available
      */
     start(options?: DeviceScannerOptions): Promise<void> {
-        debug("Start Scanning ...");
-        this._scanning$.next(true);
-        return new Promise<void>((resolve, reject) => {
-            iotizeBLE.startScan((result) => {
-                debug(result);
-                if (result == 'Ok') {
-                    resolve();
-                    return;
+        return this.checkAvailable().then(
+            isAvailable => {
+                if (!isAvailable) {
+                    return Promise.reject("BLE is not available");
                 }
-                this.addOrRefreshDevice(result);
-            }, (error) => {
-                iotizeBLE
-                    .getLastError((lasterror) => {
-                        debug("let ble error " + lasterror);
-                    }, (err) => {
-                        debug('cannot get last ble error: ', err);
+                debug("Start Scanning ...");
+                this._scanning$.next(true);
+                return new Promise<void>((resolve, reject) => {
+                    iotizeBLE.startScan((result) => {
+                        debug(result);
+                        if (result == 'Ok') {
+                            resolve();
+                            return;
+                        }
+                        this.addOrRefreshDevice(result);
+                    }, (error) => {
+                        iotizeBLE
+                        .getLastError((lasterror) => {
+                            debug("let ble error " + lasterror);
+                        }, (err) => {
+                            debug('cannot get last ble error: ', err);
+                        });
+                        reject(error);
+                        this._scanning$.next(false);
                     });
-                reject(error);
-                this._scanning$.next(false);
-            });
+                }
+            )
         });
     }
 
@@ -93,7 +101,7 @@ export class BLEScanner implements DeviceScanner<CordovaBLEScanResult> {
         return new Promise<boolean>((resolve, reject) => {
             iotizeBLE.checkAvailable((result) => {
                 debug('checkAvailable result', result);
-                resolve();
+                resolve(result);
             }, (error) => {
                 reject(error);
             });
