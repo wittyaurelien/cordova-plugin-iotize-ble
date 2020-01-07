@@ -3,7 +3,7 @@
   "license": "MIT",
   "main": "./dist/index.js",
   "name": "@iotize/cordova-plugin-iotize-ble",
-  "version": "1.1.0-alpha.34",
+  "version": "1.1.0",
   "bundleDependencies": false,
   "cordova": {
     "id": "cordova-plugin-iotize-ble",
@@ -55,7 +55,7 @@
     "url": "git+ssh://git@bitbucket.org/iotize-solutions/device-com-ble.cordova.git"
   },
   "scripts": {
-    "build": "npm run build:ts && npm run build:webpack",
+    "build": "npm run clean && npm run build:ts && npm run build:webpack",
     "build:ts": "tsc -p ./tsconfig.json",
     "watch": "tsc -w -p ./tsconfig.json",
     "build:webpack": "webpack --config webpack.config.js",

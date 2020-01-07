@@ -20,7 +20,7 @@ public class JSONBuilder {
     private static final String TAG = "JSONBuilder";
 
     @SuppressLint("MissingPermission")
-    public static JSONObject toJSONObject(BLEScanner.BluetoothDeviceAdapter device) {
+    public static JSONObject toJSONObject(BLEScanner.BLEScanData device) {
         try {
             JSONObject json = new JSONObject();
 
