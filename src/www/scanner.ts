@@ -5,7 +5,7 @@
 //  device-com-ble.cordova BLE Cordova Plugin
 //
 
-import { Subject, Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { DeviceScanner, DeviceScannerOptions } from '@iotize/device-client.js/device/scanner/device-scanner';
 import { CordovaInterface } from './cordova-interface';
 import { debug } from './logger';

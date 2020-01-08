@@ -41,7 +41,7 @@ class Request: NSObject{
                 //received data return the result to the application
                 if ( self.rxData != nil ) {
                     self.completion(self.rxData!,nil)
-                    print("---------------------- received answer \(self.rxData)")
+                    print("---------------------- received answer \(self.rxData!)")
                     return
                 }
                 Thread.sleep(forTimeInterval: Request.waitingTimeInterval)
@@ -54,7 +54,7 @@ class Request: NSObject{
 
     //helper function 
     public static func stringToHexArray(_ string: String) -> [UInt8]{
-        var stest = string.map { String($0) }
+        let stest = string.map { String($0) }
         var finalArray = [UInt8]()
         
         for i in 0..<stest.count/2{
@@ -162,7 +162,7 @@ class BLEPeripheral:  NSObject, CBPeripheralDelegate{
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?){
-        if let error = error{
+        if error != nil{
             lastError = IoTizeBleError.ServiceDiscoveryFailed(peripheral: peripheral)
             return
         }

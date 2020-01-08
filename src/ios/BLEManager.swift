@@ -25,7 +25,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
     var discoveredPeripherals = [CBPeripheral]()        //list of discovered devices
     var blestateChangeCompletion: Completion?           //callback called when the ble state is changing
     var connectionChangeCompletion: CompletionWithResponse?         //callback called when the ble connection states is changing
-    var disconnectionCompletion: Completion?       //callback called when a device is disconnected erroneously
+    var disconnectionCompletion: Completion?       //callback called when a device is disconnected
     var discoveryCompletion: CompletionWithResponse?    //callback called when a new device is discovered
     
     //currently connected device
@@ -96,21 +96,18 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         
         //save callback methods
         connectionChangeCompletion = completion
-//        disconnectionErrorCompletion = completion
         
         //in ios the device should be scanned in order 
         //to enable connection
         for item : CBPeripheral in discoveredPeripherals{
             
             let name = item.identifier.uuidString
-            if (name != nil) {
                 
-                if (name == device){
-                    
-                    connect(item)
-                    break;
-                    
-                }
+            if (name == device){
+                
+                connect(item)
+                break;
+
             }
         }
     }
@@ -120,7 +117,7 @@ class BLEManager: NSObject, CBCentralManagerDelegate
         print("--> Start Disconnecting")
 
         //save callback method 
-        //connectionChangeCompletion = completion
+        disconnectionCompletion = completion
         
         if ( connectedDevice != nil ){
             if connectedDevice!.bleDevice != nil {
@@ -226,12 +223,6 @@ class BLEManager: NSObject, CBCentralManagerDelegate
             connectionChangeCompletion = nil
             return
         }
-        
-        // Unwanted disconnection (e.g. peripheral out of range or powered off)
-//        if (connectionChangeCompletion != nil) {
-//            print("### Did Unwanted disconnection from device: \(String(describing: peripheral.name))")
-//            connectionChangeCompletion!(IoTizeBleError.PeripheralConnectionFailed(peripheral: peripheral, error: error))
-//        }
 
         connectedDevice = nil
     }

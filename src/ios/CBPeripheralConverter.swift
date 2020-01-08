@@ -24,7 +24,7 @@ struct DiscoveredDeviceType : Codable{
         if self.rssi == nil {
             return ["name": name, "address": address]
         }
-        return ["name": name, "address": address, "rssi": rssi]
+        return ["name": name, "address": address, "rssi": rssi!]
     }
     
     func toJSONString() throws -> String {

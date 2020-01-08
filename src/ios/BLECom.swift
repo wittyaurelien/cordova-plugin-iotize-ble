@@ -24,16 +24,16 @@ struct IoTizeBleError: Error {
     static func BleResetting() -> IoTizeBleError { return IoTizeBleError(code:103, message:"Bluetooth is resetting")}
     static func BleUnknown() -> IoTizeBleError { return IoTizeBleError(code:104, message:"Bluetooth is in an unknown state")}
     
-    static func PeripheralConnectionFailed(peripheral: CBPeripheral, error: Error?) -> IoTizeBleError { return IoTizeBleError(code:200, message:"Connection to \(peripheral.name) failed: \(error?.localizedDescription ?? "unknown")" )}
+    static func PeripheralConnectionFailed(peripheral: CBPeripheral, error: Error?) -> IoTizeBleError { return IoTizeBleError(code:200, message:"Connection to \(peripheral.name ?? "unknown peripheral") failed: \(error?.localizedDescription ?? "unknown")" )}
     static func NoDeviceConnected() -> IoTizeBleError { return IoTizeBleError(code:201, message:"No Device Connected")}
     
-    static func ServiceDiscoveryFailed(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:300, message:"Failed to discover services for \(peripheral.name)" )}
-    static func CharacteristicsDiscoveryFailed(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:301, message:"Failed to discover characteristics for \(peripheral.name)" )}
-    static func CharacteristicSPPNotFound(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:302, message:"Characteristic SPP not found for \(peripheral.name)" )}
+    static func ServiceDiscoveryFailed(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:300, message:"Failed to discover services for \(peripheral.name ?? "unknown peripheral")" )}
+    static func CharacteristicsDiscoveryFailed(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:301, message:"Failed to discover characteristics for \(peripheral.name ?? "unknown peripheral")" )}
+    static func CharacteristicSPPNotFound(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:302, message:"Characteristic SPP not found for \(peripheral.name ?? "unknown peripheral")" )}
     static func CharacteristicNotifyChangeFailed() -> IoTizeBleError { return IoTizeBleError(code:304, message:"Failed to set notification for characteristic" )}
     static func BleVersionIsOld(version: String) -> IoTizeBleError { return IoTizeBleError(code:303, message:"BLE firmware version is too old: \(version)" )}
     
-    static func InvalidWriteData(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:403, message:"Invalid write data for \(peripheral.name)" )}
+    static func InvalidWriteData(peripheral: CBPeripheral) -> IoTizeBleError { return IoTizeBleError(code:403, message:"Invalid write data for \(peripheral.name ?? "unknown peripheral")" )}
     static func TimedOutRequest(msg: String) -> IoTizeBleError { return IoTizeBleError(code:404, message:"Waiting for response timed out, txData: " + msg )}
         
 }
@@ -218,9 +218,7 @@ struct IoTizeBleError: Error {
             self.sendError(command: command, result: "disConnection parameter error")
             return
         }
-        
-        let nameDevice = command.arguments[0] as? String ?? ""
-        
+                
         bleController.disconnect( completion: {
             (error: IoTizeBleError?) -> () in
             
@@ -254,7 +252,6 @@ struct IoTizeBleError: Error {
             return
         }
         
-        let device = command.arguments[0] as? String ?? ""
         let data = command.arguments[1] as? String ?? ""
         
         bleController.sendRequest(data: data, completion: {
