@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.0-alpha.34">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-iotize-ble" version="1.1.1">
 
   <name>cordova-plugin-iotize-ble</name>
   <description>Bluetooth Low Energy (BLE) Plugin for IoTize devices</description>
